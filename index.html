@@ -99,6 +99,27 @@ textarea{resize:vertical;min-height:64px}
 .pit-h{width:44px;text-align:center;font-size:14px;font-weight:700;padding:6px 0}
 .pit-bar{flex:1;min-width:60px;height:6px;background:#eee;border-radius:3px;overflow:hidden}
 .pit-bar-f{height:100%;border-radius:3px;background:#2E75B6;transition:width 0.3s}
+
+.ia-box{background:#f8f9ff;border:1.5px solid #c5cae9;border-radius:10px;padding:14px;margin-top:12px}
+.ia-title{font-size:12px;font-weight:700;color:#3949ab;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.ia-sugestao{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #e8eaf6;cursor:pointer;transition:background 0.15s;border-radius:4px;padding:6px 8px}
+.ia-sugestao:last-child{border-bottom:none}
+.ia-sugestao:hover{background:#e8eaf6}
+.ia-sugestao-txt{flex:1;font-size:13px;color:#1a1a1a}
+.ia-sugestao-cnt{font-size:11px;color:#7986cb;font-weight:600;white-space:nowrap}
+.ia-loading{font-size:12px;color:#7986cb;padding:8px 0;display:flex;align-items:center;gap:8px}
+.ia-chat{border:1.5px solid #e0e0e0;border-radius:10px;overflow:hidden;margin-top:12px}
+.ia-chat-msgs{padding:12px;min-height:80px;max-height:220px;overflow-y:auto;background:#fafafa}
+.ia-msg{margin-bottom:8px;font-size:13px;line-height:1.5}
+.ia-msg.user{text-align:right}
+.ia-msg.user span{background:#1F3864;color:#fff;padding:6px 12px;border-radius:12px 12px 2px 12px;display:inline-block;max-width:85%}
+.ia-msg.bot span{background:#fff;border:1px solid #e0e0e0;padding:6px 12px;border-radius:12px 12px 12px 2px;display:inline-block;max-width:85%}
+.ia-chat-input{display:flex;border-top:1px solid #e0e0e0}
+.ia-chat-input input{flex:1;padding:10px 12px;border:none;font-size:13px;background:#fff;font-family:inherit}
+.ia-chat-input input:focus{outline:none}
+.ia-chat-input button{padding:10px 16px;background:#1F3864;color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:600}
+.ia-chat-input button:hover{background:#2E75B6}
+
 @media(max-width:520px){.row{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.cfg-hdr{flex-direction:column;align-items:flex-start;gap:8px}.pit-bar{display:none}}
 </style>
 </head>
@@ -124,7 +145,7 @@ textarea{resize:vertical;min-height:64px}
         <div class="field"><label>Processo SEI</label><input type="text" id="sei" placeholder="Ex: 23244.004463/2024-69"></div>
         <div class="field"><label>Data</label><input type="date" id="data"></div>
       </div>
-      <div class="field"><label>Tipo de demanda</label><select id="tipo" onchange="onTipoChange()"><option value="">- Selecione o tipo -</option></select></div>
+      <div class="field"><label>Tipo de demanda</label><select id="tipo" onchange="onTipoChangeComIA()"><option value="">- Selecione o tipo -</option></select></div>
       <div id="ativs-field" style="display:none" class="field">
         <label>Atividades realizadas</label>
         <p class="hint" style="margin-bottom:8px">As marcadas sao o padrao. Desmarque o que nao fez ou marque o que fez a mais.</p>
@@ -136,6 +157,24 @@ textarea{resize:vertical;min-height:64px}
         <textarea id="complemento" placeholder="Acrescente algo que nao esta na lista..."></textarea>
       </div>
       <div class="field"><label>Detalhes / Documento gerado</label><input type="text" id="detalhes" placeholder="Ex: Despacho COFIN SEI n 1304283, NP163..."></div>
+
+      <div id="ia-panel" style="display:none">
+        <div class="ia-box">
+          <div class="ia-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3949ab" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+            Sugestoes da IA — baseadas no seu historico
+          </div>
+          <div id="ia-sugestoes"></div>
+        </div>
+        <div class="ia-chat">
+          <div class="ia-chat-msgs" id="ia-msgs"></div>
+          <div class="ia-chat-input">
+            <input type="text" id="ia-input" placeholder="Pergunte algo sobre suas atividades..." onkeydown="if(event.key==='Enter')iaEnviar()">
+            <button onclick="iaEnviar()">Enviar</button>
+          </div>
+        </div>
+      </div>
+
       <button class="btn-p" onclick="salvarRegistro()">Salvar registro</button>
     </div>
   </div>
@@ -238,7 +277,7 @@ textarea{resize:vertical;min-height:64px}
 <div class="toast" id="toast"></div>
 
 <script>
-var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzbnVTRhoG2cCLPZW4p4b4JY3Whpn6LVD4MLp3_q6L50b74V4VwBQkj-w828bf1ygpD/exec';
+var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxwweMbF5eErgErqcbTZY39xT4RRsMlQ5o2HNeLz5vt_FkBV-zfssi-dNU_W-f_tpAq/exec';
 var CONFIG_KEY = 'cofin_config';
 var REG_KEY = 'cofin_reg';
 var PIT_KEY = 'cofin_pit';
@@ -488,6 +527,7 @@ function salvarRegistro(){
   limparForm();
   showToast('Registro salvo! Enviando para Sheets...');
   enviarSheets(reg);
+  iaAtualizarSugestoes();
 }
 
 function limparForm(){
@@ -574,8 +614,25 @@ function salvarEdicao(){
 }
 
 function excluirReg(i){
-  if(!confirm('Excluir este registro?')) return;
-  registros.splice(i,1);saveRegs();renderHistorico();showToast('Excluido.');
+  if(!confirm('Excluir este registro? Sera removido do Google Sheets tambem.')) return;
+  var reg = registros[i];
+  registros.splice(i,1);saveRegs();renderHistorico();
+  showToast('Excluindo do Sheets...');
+  apagarSheets(reg.id);
+}
+
+function apagarSheets(id){
+  setSyncStatus('ing','Excluindo do Sheets...');
+  fetch(SHEETS_URL,{
+    method:'POST',
+    body:JSON.stringify({action:'delete',id:String(id)})
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.status==='ok'){setSyncStatus('ok','Sheets atualizado');}
+    else{setSyncStatus('err','Erro ao excluir do Sheets');}
+  })
+  .catch(function(){setSyncStatus('err','Sem conexao');});
 }
 
 function fecharModal(id){
@@ -693,6 +750,135 @@ function salvarTipo(){
 function excluirTipo(ci){
   if(!confirm('Excluir o tipo e todas as atividades?')) return;
   config.splice(ci,1);saveConfig();popularSelect();renderConfig();showToast('Excluido.');
+}
+
+
+var iaMsgs = [];
+
+function iaAtualizarSugestoes(){
+  if(registros.length < 2) return;
+  var panel = document.getElementById('ia-panel');
+  var tipo = document.getElementById('tipo').value;
+  if(!tipo){panel.style.display='none';return;}
+  panel.style.display='block';
+  var box = document.getElementById('ia-sugestoes');
+  box.innerHTML='<div class="ia-loading"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7986cb" stroke-width="2"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/><path d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>Analisando seu historico...</div>';
+
+  var historico = registros.slice(0,30).map(function(r){
+    return r.data+' | '+r.tipo+' | '+r.atividades+(r.detalhes?' | '+r.detalhes:'');
+  }).join('\n');
+
+  var freq = {};
+  registros.forEach(function(r){
+    if(r.tipo===tipo){
+      var ativs = r.atividades.split(';');
+      ativs.forEach(function(a){
+        var t=a.trim();if(t){freq[t]=(freq[t]||0)+1;}
+      });
+    }
+  });
+
+  var sugs = Object.keys(freq).sort(function(a,b){return freq[b]-freq[a];}).slice(0,5);
+
+  if(sugs.length > 0){
+    iaSugsCache = sugs;
+    var html='';
+    sugs.forEach(function(s,si){
+      html+='<div class="ia-sugestao" data-idx="'+si+'" onclick="iaAplicarIdx(this)">';
+      html+='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7986cb" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+      html+='<span class="ia-sugestao-txt">'+s+'</span>';
+      html+='<span class="ia-sugestao-cnt">'+freq[s]+'x</span>';
+      html+='</div>';
+    });
+    box.innerHTML=html;
+    iaAdicionarMensagem('bot','Encontrei '+sugs.length+' atividade(s) que voce mais faz para "'+tipo+'". Clique para adicionar ao complemento.');
+  } else {
+    box.innerHTML='<div style="font-size:12px;color:#aaa;padding:6px 0">Nenhum historico encontrado para este tipo ainda.</div>';
+  }
+}
+
+var iaSugsCache = [];
+
+function iaAplicarIdx(el){
+  var idx = parseInt(el.getAttribute('data-idx'));
+  var texto = iaSugsCache[idx] || '';
+  if(!texto) return;
+  var comp = document.getElementById('complemento');
+  var atual = comp.value.trim();
+  if(atual && atual.indexOf(texto)===-1){
+    comp.value = atual + '; ' + texto;
+  } else if(!atual){
+    comp.value = texto;
+  }
+  document.getElementById('comp-field').style.display='block';
+  showToast('Atividade adicionada ao complemento!');
+}
+
+function iaAplicarSugestao(texto){
+  var comp = document.getElementById('complemento');
+  var atual = comp.value.trim();
+  if(atual && atual.indexOf(texto)===-1){
+    comp.value = atual + '; ' + texto;
+  } else if(!atual){
+    comp.value = texto;
+  }
+  document.getElementById('comp-field').style.display='block';
+  showToast('Atividade adicionada ao complemento!');
+}
+
+function iaAdicionarMensagem(tipo, texto){
+  iaMsgs.push({tipo:tipo,texto:texto});
+  var el = document.getElementById('ia-msgs');
+  var div = document.createElement('div');
+  div.className='ia-msg '+tipo;
+  var span = document.createElement('span');
+  span.textContent=texto;
+  div.appendChild(span);
+  el.appendChild(div);
+  el.scrollTop=el.scrollHeight;
+}
+
+function iaEnviar(){
+  var input = document.getElementById('ia-input');
+  var pergunta = input.value.trim();
+  if(!pergunta) return;
+  input.value='';
+  iaAdicionarMensagem('user', pergunta);
+
+  var historico = registros.slice(0,50).map(function(r){
+    return r.data+' | '+r.tipo+' | '+r.atividades+(r.detalhes?' | '+r.detalhes:'');
+  }).join('\n');
+
+  var freq = {};
+  registros.forEach(function(r){
+    freq[r.tipo]=(freq[r.tipo]||0)+1;
+  });
+  var resumo = Object.keys(freq).map(function(k){return k+': '+freq[k]+'x';}).join(', ');
+
+  var prompt = 'Voce e um assistente de produtividade para um servidor publico federal brasileiro que trabalha na COFIN (Coordenacao de Execucao Financeira) em regime de teletrabalho (PGD). Responda de forma direta e pratica em portugues.\n\nHistorico recente de atividades:\n'+historico+'\n\nResumo por tipo: '+resumo+'\n\nPergunta do usuario: '+pergunta+'\n\nResponda em no maximo 3 linhas, de forma pratica e direta.';
+
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:300,
+      messages:[{role:'user',content:prompt}]
+    })
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    var txt = d.content&&d.content[0]?d.content[0].text:'Nao foi possivel responder agora.';
+    iaAdicionarMensagem('bot',txt);
+  })
+  .catch(function(){
+    iaAdicionarMensagem('bot','Erro ao conectar com a IA. Verifique sua conexao.');
+  });
+}
+
+function onTipoChangeComIA(){
+  onTipoChange();
+  if(registros.length >= 2) iaAtualizarSugestoes();
 }
 
 function pitCalc(){
