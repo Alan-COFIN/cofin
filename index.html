@@ -120,6 +120,13 @@ textarea{resize:vertical;min-height:64px}
 .ia-chat-input button{padding:10px 16px;background:#1F3864;color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:600}
 .ia-chat-input button:hover{background:#2E75B6}
 
+
+.drag-handle{cursor:grab;color:#ccc;padding:0 6px;flex-shrink:0;user-select:none;font-size:16px}
+.drag-handle:hover{color:#888}
+.drag-handle:active{cursor:grabbing}
+.dragging{opacity:0.4;border:2px dashed #2E75B6 !important}
+.drag-over{border-top:2px solid #2E75B6 !important}
+
 @media(max-width:520px){.row{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.cfg-hdr{flex-direction:column;align-items:flex-start;gap:8px}.pit-bar{display:none}}
 </style>
 </head>
@@ -562,7 +569,8 @@ function renderHistorico(){
     var syncBadge=r.synced
       ? '<span class="cloud-badge cloud-ok">Sheets</span>'
       : '<span class="cloud-badge cloud-pend">Pendente</span>';
-    html+='<div class="reg-card">';
+    html+='<div class="reg-card" id="reg-card-'+i+'">';
+    html+='<div style="display:flex;justify-content:flex-end"><span class="drag-handle" style="font-size:13px" title="Arrastar para reordenar">&#8597;</span></div>';
     html+='<div class="tp">'+r.tipo+syncBadge+'</div>';
     html+='<div class="pc">'+(r.sei||'Sem processo SEI')+'</div>';
     html+='<div class="av">'+(r.atividades||'')+'</div>';
@@ -578,6 +586,10 @@ function renderHistorico(){
     html+='</div></div>';
   });
   el.innerHTML=html;
+  registros.forEach(function(r,i){
+    var card=document.getElementById('reg-card-'+i);
+    if(card) makeDraggable(card,el,'hist',-1);
+  });
 }
 
 function reenviar(i){
@@ -660,17 +672,19 @@ function renderConfig(){
   var html='';
   config.forEach(function(c,ci){
     var np=c.atividades.filter(function(a){return a.padrao;}).length;
-    html+='<div class="cfg-tipo">';
-    html+='<div class="cfg-hdr" onclick="toggleBody('+ci+')">';
-    html+='<div><div class="cfg-title">'+c.tipo+'</div>';
+    html+='<div class="cfg-tipo" id="cfg-tipo-'+ci+'">';
+    html+='<div class="cfg-hdr" onclick="toggleBody('+ci+')" style="display:flex;align-items:center">';
+    html+='<span class="drag-handle" onclick="event.stopPropagation()" title="Arrastar para reordenar">&#8597;</span>';
+    html+='<div style="flex:1"><div class="cfg-title">'+c.tipo+'</div>';
     html+='<div class="cfg-meta">'+c.atividades.length+' atividades &bull; '+np+' padrao &bull; '+c.sistemas+'</div></div>';
     html+='<div style="display:flex;gap:6px;flex-shrink:0">';
     html+='<button class="btn-sm" onclick="event.stopPropagation();editarTipo('+ci+')">Editar</button>';
     html+='<button class="btn-sm d" onclick="event.stopPropagation();excluirTipo('+ci+')">Excluir</button>';
     html+='</div></div>';
-    html+='<div class="cfg-body" id="body-'+ci+'">';
+    html+='<div class="cfg-body" id="body-'+ci+'" id="atv-list-'+ci+'">';
     c.atividades.forEach(function(a,ai){
-      html+='<div class="cfg-atv">';
+      html+='<div class="cfg-atv" id="cfg-atv-'+ci+'-'+ai+'">';
+      html+='<span class="drag-handle" title="Arrastar">&#8597;</span>';
       html+='<input type="checkbox" '+(a.padrao?'checked':'')+' onchange="setPadrao('+ci+','+ai+',this.checked)">';
       html+='<span class="cfg-atv-txt">'+a.texto+'</span>';
       html+='<span class="cfg-atv-tp">'+(a.padrao?'padrao':'opcional')+'</span>';
@@ -685,6 +699,20 @@ function renderConfig(){
     html+='</div></div></div>';
   });
   div.innerHTML=html;
+  // attach drag to tipos
+  var tipoList=document.getElementById('config-lista');
+  config.forEach(function(c,ci){
+    var tipoEl=document.getElementById('cfg-tipo-'+ci);
+    if(tipoEl) makeDraggable(tipoEl,tipoList,'tipo',-1);
+    // attach drag to atividades
+    var bodyEl=document.getElementById('body-'+ci);
+    if(bodyEl){
+      c.atividades.forEach(function(a,ai){
+        var atvEl=document.getElementById('cfg-atv-'+ci+'-'+ai);
+        if(atvEl) makeDraggable(atvEl,bodyEl,'atv',ci);
+      });
+    }
+  });
 }
 
 function toggleBody(ci){
@@ -797,6 +825,59 @@ function iaAtualizarSugestoes(){
   }
 }
 
+
+// ── Drag & Drop universal ──────────────────────────────────────
+var dragSrc = null;
+var dragList = null;
+var dragKey = null;
+var dragCi = -1;
+
+function makeDraggable(el, list, key, ci){
+  el.setAttribute('draggable','true');
+  el.addEventListener('dragstart',function(e){
+    dragSrc=el;dragList=list;dragKey=key;dragCi=ci;
+    setTimeout(function(){el.classList.add('dragging');},0);
+    e.dataTransfer.effectAllowed='move';
+  });
+  el.addEventListener('dragend',function(){
+    el.classList.remove('dragging');
+    document.querySelectorAll('.drag-over').forEach(function(x){x.classList.remove('drag-over');});
+  });
+  el.addEventListener('dragover',function(e){
+    e.preventDefault();e.dataTransfer.dropEffect='move';
+    if(el!==dragSrc) el.classList.add('drag-over');
+  });
+  el.addEventListener('dragleave',function(){el.classList.remove('drag-over');});
+  el.addEventListener('drop',function(e){
+    e.preventDefault();e.stopPropagation();
+    el.classList.remove('drag-over');
+    if(!dragSrc||dragSrc===el) return;
+    if(dragKey!==key||(key==='atv'&&dragCi!==ci)) return;
+    var items=Array.from(list.children);
+    var fromIdx=items.indexOf(dragSrc);
+    var toIdx=items.indexOf(el);
+    if(fromIdx<0||toIdx<0) return;
+    if(key==='tipo'){
+      var moved=config.splice(fromIdx,1)[0];
+      config.splice(toIdx,0,moved);
+      saveConfig();popularSelect();renderConfig();
+    } else if(key==='atv'){
+      var moved=config[ci].atividades.splice(fromIdx,1)[0];
+      config[ci].atividades.splice(toIdx,0,moved);
+      saveConfig();renderConfig();keepOpen(ci);
+    } else if(key==='pit'){
+      var moved=pitEntregas.splice(fromIdx,1)[0];
+      pitEntregas.splice(toIdx,0,moved);
+      savePit();pitRender();
+    } else if(key==='hist'){
+      var moved=registros.splice(fromIdx,1)[0];
+      registros.splice(toIdx,0,moved);
+      saveRegs();renderHistorico();
+    }
+    showToast('Ordem atualizada!');
+  });
+}
+
 var iaSugsCache = [];
 
 function iaAplicarIdx(el){
@@ -903,7 +984,8 @@ function pitRender(){
     }
     var pct=total>0?Math.min(100,Math.round((calc/total)*100)):0;
     var cor=e.tipo==='fixa'?'#1a5296':'#2e7d32';
-    html+='<div class="pit-row">';
+    html+='<div class="pit-row" id="pit-row-'+i+'">';
+    html+='<span class="drag-handle" title="Arrastar">&#8597;</span>';
     html+='<div class="pit-ent">'+e.titulo+'</div>';
     html+='<button class="pit-btn '+e.tipo+'" onclick="pitToggle('+i+')">'+(e.tipo==='fixa'?'Fixa':'Variavel')+'</button>';
     if(e.tipo==='fixa'){
@@ -917,6 +999,11 @@ function pitRender(){
     html+='</div>';
   });
   document.getElementById('pit-lista').innerHTML=html;
+  var pitList=document.getElementById('pit-lista');
+  pitEntregas.forEach(function(e,i){
+    var el=document.getElementById('pit-row-'+i);
+    if(el) makeDraggable(el,pitList,'pit',-1);
+  });
 
   if(total>0){
     document.getElementById('pit-resumo').textContent=total+'h previstas  |  '+fixaSum+'h fixas  |  '+(varPool>0?varPool:0)+'h variaveis';
