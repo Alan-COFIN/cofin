@@ -3,16 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COFIN — Registro de Atividades PGD</title>
+<title>COFIN - Registro de Atividades PGD</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:#f5f6f8;color:#1a1a1a;min-height:100vh}
-header{background:#1F3864;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+header{background:#1F3864;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 header h1{font-size:16px;font-weight:600}
 header span{font-size:12px;opacity:0.7}
+.sync-status{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:500}
+.sync-ok{background:rgba(112,220,139,0.25);color:#b7ffce}
+.sync-err{background:rgba(255,100,100,0.25);color:#ffd0d0}
+.sync-ing{background:rgba(255,255,255,0.15);color:#fff}
 .container{max-width:780px;margin:0 auto;padding:20px 16px}
 .tabs{display:flex;gap:2px;background:#e8eaed;border-radius:10px;padding:3px;margin-bottom:20px}
-.tab{flex:1;padding:8px;text-align:center;cursor:pointer;border-radius:8px;font-size:13px;font-weight:500;color:#555;border:none;background:none}
+.tab{flex:1;padding:7px 4px;text-align:center;cursor:pointer;border-radius:8px;font-size:12px;font-weight:500;color:#555;border:none;background:none}
 .tab.active{background:#fff;color:#1F3864;box-shadow:0 1px 3px rgba(0,0,0,0.12)}
 .section{display:none}.section.active{display:block}
 .card{background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
@@ -29,32 +33,35 @@ textarea{resize:vertical;min-height:64px}
 .atv-item input[type=checkbox]{width:16px;height:16px;margin-top:1px;cursor:pointer;flex-shrink:0;accent-color:#2E75B6}
 .atv-item .atv-label{font-size:13px;line-height:1.4;flex:1;cursor:pointer}
 .atv-item.padrao .atv-label{font-weight:500}
-.badge-padrao{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:6px;background:#e8f0fe;color:#1a5296;font-weight:600;vertical-align:middle}
+.badge-p{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;margin-left:6px;background:#e8f0fe;color:#1a5296;font-weight:600;vertical-align:middle}
 .sistemas-box{margin-top:10px;padding:10px 12px;background:#f0faf4;border-radius:8px;font-size:12px;color:#2d6a4f;border:1px solid #b7e4c7;font-weight:500}
 .hint{font-size:11px;color:#888;margin-top:5px}
-.btn-primary{width:100%;padding:12px;background:#1F3864;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:6px;transition:background 0.2s}
-.btn-primary:hover{background:#2E75B6}
+.btn-p{width:100%;padding:12px;background:#1F3864;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;margin-top:6px;transition:background 0.2s}
+.btn-p:hover{background:#2E75B6}
 .btn-sm{padding:5px 12px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:500;border:1.5px solid #ddd;background:#fff;color:#333;white-space:nowrap}
 .btn-sm:hover{background:#f5f5f5}
-.btn-sm.danger{border-color:#ffcdd2;color:#c62828}
-.btn-sm.danger:hover{background:#fff5f5}
-.btn-sm.success{border-color:#c8e6c9;color:#2e7d32;background:#f1f8e9}
-.btn-sm.success:hover{background:#e8f5e9}
-.btn-secondary{padding:7px 14px;background:#fff;border:1.5px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer;color:#333;font-weight:500}
-.btn-secondary:hover{background:#f5f5f5}
-.btn-export{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#fff;border:1.5px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer;color:#333;font-weight:500;margin-bottom:16px}
-.btn-export:hover{background:#f5f5f5}
+.btn-sm.d{border-color:#ffcdd2;color:#c62828}
+.btn-sm.d:hover{background:#fff5f5}
+.btn-sm.s{border-color:#c8e6c9;color:#2e7d32;background:#f1f8e9}
+.btn-sm.s:hover{background:#e8f5e9}
+.btn-sec{padding:7px 14px;background:#fff;border:1.5px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer;color:#333;font-weight:500}
+.btn-sec:hover{background:#f5f5f5}
+.btn-exp{display:flex;align-items:center;gap:8px;padding:10px 16px;background:#fff;border:1.5px solid #ddd;border-radius:8px;font-size:13px;cursor:pointer;color:#333;font-weight:500;margin-bottom:16px}
+.btn-exp:hover{background:#f5f5f5}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
 .stat{background:#fff;border-radius:10px;padding:14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.07)}
 .stat .n{font-size:26px;font-weight:700;color:#1F3864}
 .stat .l{font-size:11px;color:#888;margin-top:3px;font-weight:500;text-transform:uppercase;letter-spacing:0.4px}
 .empty{text-align:center;padding:40px 20px;color:#aaa;font-size:13px}
 .reg-card{background:#fff;border-radius:10px;padding:14px 16px;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,0.07);border-left:3px solid #2E75B6}
-.reg-card .tipo{font-size:11px;font-weight:700;color:#2E75B6;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
-.reg-card .proc{font-size:14px;font-weight:600;color:#1a1a1a}
-.reg-card .ativs{font-size:12px;color:#555;margin-top:5px;line-height:1.6}
-.reg-card .meta{font-size:11px;color:#999;margin-top:8px;display:flex;gap:14px;flex-wrap:wrap}
-.reg-card .acoes{display:flex;gap:6px;margin-top:10px}
+.reg-card .tp{font-size:11px;font-weight:700;color:#2E75B6;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
+.reg-card .pc{font-size:14px;font-weight:600}
+.reg-card .av{font-size:12px;color:#555;margin-top:5px;line-height:1.6}
+.reg-card .mt{font-size:11px;color:#999;margin-top:8px;display:flex;gap:14px;flex-wrap:wrap}
+.reg-card .ac{display:flex;gap:6px;margin-top:10px}
+.cloud-badge{font-size:10px;padding:1px 6px;border-radius:4px;margin-left:6px;font-weight:600;vertical-align:middle}
+.cloud-ok{background:#e8f5e9;color:#2e7d32}
+.cloud-pend{background:#fff8e1;color:#f57f17}
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center;padding:16px}
 .overlay.open{display:flex}
 .modal{background:#fff;border-radius:14px;padding:22px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
@@ -62,46 +69,46 @@ textarea{resize:vertical;min-height:64px}
 .modal-footer{display:flex;gap:8px;margin-top:14px}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1F3864;color:#fff;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:999;white-space:nowrap}
 .toast.show{opacity:1}
-.config-tipo{background:#fff;border-radius:10px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.07);overflow:hidden}
-.config-tipo-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-bottom:1px solid #f0f0f0}
-.config-tipo-header:hover{background:#fafafa}
-.config-tipo-title{font-size:13px;font-weight:700;color:#1F3864}
-.config-tipo-meta{font-size:11px;color:#aaa;margin-top:2px}
-.config-tipo-body{padding:12px 16px;display:none}
-.config-tipo-body.open{display:block}
-.config-atv-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f5f5f5;flex-wrap:wrap}
-.config-atv-row:last-child{border-bottom:none}
-.config-atv-row input[type=checkbox]{width:15px;height:15px;accent-color:#2E75B6;flex-shrink:0;cursor:pointer}
-.config-atv-texto{flex:1;font-size:13px;color:#1a1a1a;min-width:120px}
-.config-atv-tipo{font-size:10px;color:#aaa;min-width:42px;text-align:right}
-.add-atv-row{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #f0f0f0;align-items:center;flex-wrap:wrap}
-.add-atv-row input{flex:1;min-width:140px;padding:7px 10px;font-size:13px}
-.toggle-padrao{font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;border:1.5px solid #ddd;background:#fff;color:#555;white-space:nowrap}
-.toggle-padrao.on{background:#e8f0fe;border-color:#aec6f6;color:#1a5296}
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-.section-title{font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px}
-
+.cfg-tipo{background:#fff;border-radius:10px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,0.07);overflow:hidden}
+.cfg-hdr{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;border-bottom:1px solid #f0f0f0}
+.cfg-hdr:hover{background:#fafafa}
+.cfg-title{font-size:13px;font-weight:700;color:#1F3864}
+.cfg-meta{font-size:11px;color:#aaa;margin-top:2px}
+.cfg-body{padding:12px 16px;display:none}
+.cfg-body.open{display:block}
+.cfg-atv{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid #f5f5f5;flex-wrap:wrap}
+.cfg-atv:last-child{border-bottom:none}
+.cfg-atv input[type=checkbox]{width:15px;height:15px;accent-color:#2E75B6;flex-shrink:0;cursor:pointer}
+.cfg-atv-txt{flex:1;font-size:13px;min-width:120px}
+.cfg-atv-tp{font-size:10px;color:#aaa;min-width:42px;text-align:right}
+.add-row{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #f0f0f0;align-items:center;flex-wrap:wrap}
+.add-row input{flex:1;min-width:140px;padding:7px 10px;font-size:13px}
+.tgl{font-size:11px;padding:5px 12px;border-radius:6px;cursor:pointer;border:1.5px solid #ddd;background:#fff;color:#555;white-space:nowrap}
+.tgl.on{background:#e8f0fe;border-color:#aec6f6;color:#1a5296}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.st{font-size:13px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:0.5px}
 .pit-row{display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid #f0f0f0;flex-wrap:wrap}
 .pit-row:last-child{border-bottom:none}
 .pit-row:hover{background:#fafafa}
-.pit-entrega{flex:1;min-width:180px;font-size:13px;color:#1a1a1a}
-.pit-tipo-btn{font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;border:1.5px solid #ddd;background:#fff;color:#555;white-space:nowrap;transition:all 0.15s}
-.pit-tipo-btn.fixa{background:#e8f0fe;border-color:#aec6f6;color:#1a5296}
-.pit-tipo-btn.variavel{background:#f1f8e9;border-color:#c8e6c9;color:#2e7d32}
-.pit-input{width:72px;padding:6px 10px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:13px;text-align:center}
-.pit-input:focus{outline:none;border-color:#2E75B6}
-.pit-input:disabled{background:#f5f5f5;color:#aaa;cursor:not-allowed}
-.pit-calc{width:72px;text-align:center;font-size:13px;font-weight:600;color:#2e7d32;padding:6px 0}
-.pit-bar{flex:1;min-width:80px;height:6px;background:#eee;border-radius:3px;overflow:hidden}
-.pit-bar-fill{height:100%;border-radius:3px;background:#2E75B6;transition:width 0.3s}
-
-@media(max-width:500px){.row{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.stat .n{font-size:20px}.config-tipo-header{flex-direction:column;align-items:flex-start;gap:8px}}
+.pit-ent{flex:1;min-width:160px;font-size:13px;line-height:1.4}
+.pit-btn{font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;border:1.5px solid #ddd;background:#fff;color:#555;white-space:nowrap;font-weight:500}
+.pit-btn.fixa{background:#e8f0fe;border-color:#aec6f6;color:#1a5296}
+.pit-btn.variavel{background:#f1f8e9;border-color:#c8e6c9;color:#2e7d32}
+.pit-inp{width:68px;padding:6px 8px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:13px;text-align:center;font-family:inherit}
+.pit-inp:focus{outline:none;border-color:#2E75B6}
+.pit-h{width:44px;text-align:center;font-size:14px;font-weight:700;padding:6px 0}
+.pit-bar{flex:1;min-width:60px;height:6px;background:#eee;border-radius:3px;overflow:hidden}
+.pit-bar-f{height:100%;border-radius:3px;background:#2E75B6;transition:width 0.3s}
+@media(max-width:520px){.row{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.cfg-hdr{flex-direction:column;align-items:flex-start;gap:8px}.pit-bar{display:none}}
 </style>
 </head>
 <body>
 <header>
-  <h1>COFIN — Registro de Atividades</h1>
-  <span>Teletrabalho PGD</span>
+  <h1>COFIN - Registro de Atividades</h1>
+  <div style="display:flex;align-items:center;gap:10px">
+    <span id="sync-status" class="sync-status sync-ok">Sheets conectado</span>
+    <span style="font-size:12px;opacity:0.7">Teletrabalho PGD</span>
+  </div>
 </header>
 <div class="container">
   <div class="tabs">
@@ -117,25 +124,25 @@ textarea{resize:vertical;min-height:64px}
         <div class="field"><label>Processo SEI</label><input type="text" id="sei" placeholder="Ex: 23244.004463/2024-69"></div>
         <div class="field"><label>Data</label><input type="date" id="data"></div>
       </div>
-      <div class="field"><label>Tipo de demanda</label><select id="tipo" onchange="onTipoChange()"><option value="">— Selecione o tipo —</option></select></div>
-      <div class="field" id="ativs-field" style="display:none">
+      <div class="field"><label>Tipo de demanda</label><select id="tipo" onchange="onTipoChange()"><option value="">- Selecione o tipo -</option></select></div>
+      <div id="ativs-field" style="display:none" class="field">
         <label>Atividades realizadas</label>
         <p class="hint" style="margin-bottom:8px">As marcadas sao o padrao. Desmarque o que nao fez ou marque o que fez a mais.</p>
         <div class="atividades-box" id="ativs-list"></div>
         <div id="sistemas-box" class="sistemas-box" style="display:none"></div>
       </div>
-      <div class="field" id="comp-field" style="display:none">
+      <div id="comp-field" style="display:none" class="field">
         <label>Complemento <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
-        <textarea id="complemento" placeholder="Acrescente algo que nao esta na lista acima..."></textarea>
+        <textarea id="complemento" placeholder="Acrescente algo que nao esta na lista..."></textarea>
       </div>
       <div class="field"><label>Detalhes / Documento gerado</label><input type="text" id="detalhes" placeholder="Ex: Despacho COFIN SEI n 1304283, NP163..."></div>
-      <button class="btn-primary" onclick="salvarRegistro()">Salvar registro</button>
+      <button class="btn-p" onclick="salvarRegistro()">Salvar registro</button>
     </div>
   </div>
 
   <div id="historico" class="section">
     <div class="stats" id="stats"></div>
-    <button class="btn-export" onclick="exportarCSV()">
+    <button class="btn-exp" onclick="exportarCSV()">
       <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       Exportar para Excel (.csv)
     </button>
@@ -143,54 +150,43 @@ textarea{resize:vertical;min-height:64px}
   </div>
 
   <div id="config" class="section">
-    <div class="section-header">
-      <span class="section-title">Tipos de demanda</span>
-      <button class="btn-sm success" onclick="abrirModalNovoTipo()">+ Novo tipo</button>
-    </div>
+    <div class="sh"><span class="st">Tipos de demanda</span><button class="btn-sm s" onclick="abrirNovoTipo()">+ Novo tipo</button></div>
     <p style="font-size:13px;color:#666;margin-bottom:16px">Clique em um tipo para expandir e editar suas atividades.</p>
     <div id="config-lista"></div>
   </div>
+
   <div id="pit" class="section">
     <div class="card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div>
-          <div style="font-size:15px;font-weight:700;color:#1F3864">Planejamento de Horas — PIT</div>
-          <div style="font-size:12px;color:#888;margin-top:2px">Informe o total de horas e distribua entre as entregas</div>
-        </div>
-      </div>
-      <div class="row" style="margin-bottom:4px">
+      <div style="font-size:15px;font-weight:700;color:#1F3864;margin-bottom:4px">Planejamento de Horas - PIT</div>
+      <div style="font-size:12px;color:#888;margin-bottom:16px">Informe o total de horas e distribua entre as entregas</div>
+      <div class="row">
         <div class="field">
           <label>Total de horas do mes</label>
-          <input type="number" id="pit-total" placeholder="Ex: 176" min="1" max="300" oninput="pitCalcular()">
+          <input type="number" id="pit-total" placeholder="Ex: 176" min="1" max="400" oninput="pitCalc()">
         </div>
         <div class="field">
-          <label>Horas ja distribuidas</label>
-          <div style="padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;background:#f9f9f9;color:#555" id="pit-usadas">0h de 0h</div>
+          <label>Resumo</label>
+          <div id="pit-resumo" style="padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:12px;background:#f9f9f9;color:#555;line-height:1.6">-</div>
         </div>
       </div>
-      <div id="pit-alerta" style="display:none;padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:12px"></div>
+      <div id="pit-alerta" style="display:none;padding:10px 12px;border-radius:8px;font-size:13px;background:#fff3e0;border:1px solid #ffe0b2;color:#e65100"></div>
     </div>
-
     <div class="card" style="padding:0;overflow:hidden">
-      <div style="padding:14px 16px;background:#f5f6f8;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between">
+      <div style="padding:12px 16px;background:#f5f6f8;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between">
         <span style="font-size:13px;font-weight:700;color:#1F3864">Entregas do PIT</span>
-        <div style="display:flex;gap:8px;align-items:center">
-          <span style="font-size:11px;color:#888">Fixas sao distribuidas primeiro. O restante vai para as variaveis.</span>
-        </div>
+        <span style="font-size:11px;color:#888">Clique em Fixa/Variavel para alternar</span>
       </div>
       <div id="pit-lista"></div>
     </div>
-
-    <div class="card" id="pit-resultado" style="display:none">
+    <div id="pit-resultado" style="display:none" class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-        <div style="font-size:14px;font-weight:700;color:#1F3864">Resultado — copie para o SUAP</div>
-        <button class="btn-sm success" onclick="pitCopiar()">Copiar tudo</button>
+        <div style="font-size:14px;font-weight:700;color:#1F3864">Resultado - copie para o SUAP</div>
+        <button class="btn-sm s" onclick="pitCopiar()">Copiar tudo</button>
       </div>
-      <div id="pit-resultado-texto" style="background:#f5f6f8;border-radius:8px;padding:14px;font-size:13px;line-height:2;font-family:monospace;white-space:pre-wrap;border:1px solid #e0e0e0"></div>
+      <div id="pit-txt" style="background:#f5f6f8;border-radius:8px;padding:14px;font-size:13px;line-height:2;font-family:monospace;border:1px solid #e0e0e0;white-space:pre"></div>
       <p style="font-size:11px;color:#aaa;margin-top:8px">Copie cada valor e cole no campo de horas correspondente no SUAP.</p>
     </div>
   </div>
-
 </div>
 
 <div class="overlay" id="edit-modal">
@@ -203,8 +199,8 @@ textarea{resize:vertical;min-height:64px}
     <div class="field"><label>Sistemas utilizados</label><input type="text" id="e-sistemas"></div>
     <div class="field"><label>Detalhes</label><input type="text" id="e-detalhes"></div>
     <div class="modal-footer">
-      <button class="btn-primary" style="flex:1" onclick="salvarEdicao()">Salvar</button>
-      <button class="btn-secondary" onclick="fecharModal('edit-modal')">Cancelar</button>
+      <button class="btn-p" style="flex:1" onclick="salvarEdicao()">Salvar</button>
+      <button class="btn-sec" onclick="fecharModal('edit-modal')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -216,13 +212,13 @@ textarea{resize:vertical;min-height:64px}
     <div class="field">
       <label>Tipo</label>
       <div style="display:flex;gap:16px;margin-top:6px">
-        <label style="display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-weight:400;font-size:13px;cursor:pointer"><input type="radio" name="atv-tipo" id="atv-r-padrao" value="padrao"> Padrao (ja vem marcada)</label>
-        <label style="display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-weight:400;font-size:13px;cursor:pointer"><input type="radio" name="atv-tipo" id="atv-r-opcional" value="opcional"> Opcional</label>
+        <label style="display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-weight:400;font-size:13px;cursor:pointer"><input type="radio" name="atv-tp" id="atv-r-p"> Padrao</label>
+        <label style="display:flex;align-items:center;gap:6px;text-transform:none;letter-spacing:0;font-weight:400;font-size:13px;cursor:pointer"><input type="radio" name="atv-tp" id="atv-r-o"> Opcional</label>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-primary" style="flex:1" onclick="salvarAtvEdicao()">Salvar</button>
-      <button class="btn-secondary" onclick="fecharModal('atv-modal')">Cancelar</button>
+      <button class="btn-p" style="flex:1" onclick="salvarAtvEd()">Salvar</button>
+      <button class="btn-sec" onclick="fecharModal('atv-modal')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -233,8 +229,8 @@ textarea{resize:vertical;min-height:64px}
     <div class="field"><label>Nome do tipo</label><input type="text" id="nt-nome" placeholder="Ex: Liquidacao de Diarias"></div>
     <div class="field"><label>Sistemas utilizados</label><input type="text" id="nt-sistemas" placeholder="Ex: SIAFI; SEI"></div>
     <div class="modal-footer">
-      <button class="btn-primary" style="flex:1" onclick="salvarTipo()">Salvar</button>
-      <button class="btn-secondary" onclick="fecharModal('tipo-modal')">Cancelar</button>
+      <button class="btn-p" style="flex:1" onclick="salvarTipo()">Salvar</button>
+      <button class="btn-sec" onclick="fecharModal('tipo-modal')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -242,12 +238,20 @@ textarea{resize:vertical;min-height:64px}
 <div class="toast" id="toast"></div>
 
 <script>
-var CONFIG_KEY='cofin_config', REG_KEY='cofin_reg';
-var defaultConfig=[
+var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzbnVTRhoG2cCLPZW4p4b4JY3Whpn6LVD4MLp3_q6L50b74V4VwBQkj-w828bf1ygpD/exec';
+var CONFIG_KEY = 'cofin_config';
+var REG_KEY = 'cofin_reg';
+var PIT_KEY = 'cofin_pit';
+var editIdx = -1;
+var editAtvIdx = {ci:-1,ai:-1};
+var editTipoIdx = -1;
+
+var defaultConfig = [
   {tipo:"Liquidacao da NF/FAT",sistemas:"SICAF; SEI; SIAFI; Planilha REINF",atividades:[
     {texto:"Consulta do SICAF",padrao:true},{texto:"Consulta do Simples Nacional",padrao:true},
     {texto:"Aprovacao da NF no Contratos",padrao:true},{texto:"Despacho da NS para COERG",padrao:true},
-    {texto:"Lancamento de encargo no drive REINF",padrao:true},{texto:"Conferencia do despacho para liquidacao",padrao:false}]},
+    {texto:"Lancamento de encargo no drive REINF",padrao:true},
+    {texto:"Conferencia do despacho para liquidacao",padrao:false}]},
   {tipo:"Pagamento da NF/FAT",sistemas:"SEI; SIAFI; Planilha REINF",atividades:[
     {texto:"Conferencia do despacho decisorio",padrao:true},{texto:"Conferencia da liquidacao",padrao:true},
     {texto:"Pagamento da liquidacao",padrao:true},{texto:"Lancamento no drive REINF",padrao:true},
@@ -261,14 +265,18 @@ var defaultConfig=[
     {texto:"Confirmacao da lista de beneficiarios e LCs",padrao:true},
     {texto:"Conferencia da liquidacao",padrao:true},{texto:"Fechamento das LCs",padrao:true},
     {texto:"Pagamento da liquidacao",padrao:true},{texto:"Despacho da OB para COERG",padrao:true},
-    {texto:"Informe por e-mail ao demandante",padrao:false},{texto:"Consulta de recurso TED/Emenda",padrao:false}]},
+    {texto:"Informe por e-mail ao demandante",padrao:false},
+    {texto:"Consulta de recurso TED/Emenda",padrao:false}]},
   {tipo:"Despacho de liquidacao",sistemas:"SEI",atividades:[
-    {texto:"Conferencia da descricao do despacho e links",padrao:true},{texto:"Encaminhamento para COERG",padrao:true}]},
+    {texto:"Conferencia da descricao do despacho e links",padrao:true},
+    {texto:"Encaminhamento para COERG",padrao:true}]},
   {tipo:"Despacho de pagamento",sistemas:"SEI; Planilha REINF",atividades:[
     {texto:"Conferencia dos comprovantes de pagamento",padrao:true},
-    {texto:"Conferencia se foi lancado na planilha REINF",padrao:true},{texto:"Encaminhamento para COERG",padrao:true}]},
+    {texto:"Conferencia se foi lancado na planilha REINF",padrao:true},
+    {texto:"Encaminhamento para COERG",padrao:true}]},
   {tipo:"Demanda para o Campus",sistemas:"SEI; Planilha",atividades:[
-    {texto:"Conferencia do despacho decisorio",padrao:true},{texto:"Conferencia da liquidacao",padrao:true},
+    {texto:"Conferencia do despacho decisorio",padrao:true},
+    {texto:"Conferencia da liquidacao",padrao:true},
     {texto:"Preenchimento da planilha de acompanhamento",padrao:true},
     {texto:"Despacho autorizando pagamento para o campus",padrao:true}]},
   {tipo:"Liquidacao da folha de pessoal",sistemas:"SIAFI; Planilha",atividades:[
@@ -276,70 +284,159 @@ var defaultConfig=[
     {texto:"Solicitacao de recurso financeiro da folha no SIAFI",padrao:true}]},
   {tipo:"Pagamento da folha de pessoal",sistemas:"SIAFI; SEI",atividades:[
     {texto:"Consulta da liberacao do recurso financeiro",padrao:true},
-    {texto:"Anexo dos comprovantes de pagamento",padrao:true},{texto:"Despacho das OBs para COERG",padrao:true}]},
-  {tipo:"Liquidacao PCDP",sistemas:"SIAFI; SEI",atividades:[{texto:"Conferencia e liquidacao das PCDPs no SIAFI",padrao:true}]},
-  {tipo:"Pagamento PCDP",sistemas:"SIAFI; SEI",atividades:[{texto:"Conferencia e pagamento das PCDPs no SIAFI",padrao:true}]},
+    {texto:"Anexo dos comprovantes de pagamento",padrao:true},
+    {texto:"Despacho das OBs para COERG",padrao:true}]},
+  {tipo:"Liquidacao PCDP",sistemas:"SIAFI; SEI",atividades:[
+    {texto:"Conferencia e liquidacao das PCDPs no SIAFI",padrao:true}]},
+  {tipo:"Pagamento PCDP",sistemas:"SIAFI; SEI",atividades:[
+    {texto:"Conferencia e pagamento das PCDPs no SIAFI",padrao:true}]},
   {tipo:"Regularizacao de pagamento (OBs canceladas)",sistemas:"SIAFI; E-mail",atividades:[
-    {texto:"Consulta das OBs canceladas",padrao:true},{texto:"Preenchimento de planilha das OBs",padrao:true},
-    {texto:"Emissao de lista de credores",padrao:true},{texto:"E-mail de consulta",padrao:false},{texto:"Regularizacao",padrao:false}]},
+    {texto:"Consulta das OBs canceladas",padrao:true},
+    {texto:"Preenchimento de planilha das OBs",padrao:true},
+    {texto:"Emissao de lista de credores",padrao:true},
+    {texto:"E-mail de consulta",padrao:false},{texto:"Regularizacao",padrao:false}]},
   {tipo:"Atendimento aos campi e setores",sistemas:"E-mail; WhatsApp Institucional; SEI",atividades:[
-    {texto:"Orientacao tecnica por e-mail",padrao:true},{texto:"Orientacao tecnica por WhatsApp",padrao:false},
+    {texto:"Orientacao tecnica por e-mail",padrao:true},
+    {texto:"Orientacao tecnica por WhatsApp",padrao:false},
     {texto:"Solicitacao de correcao de NP/RP",padrao:false}]},
   {tipo:"Atendimento aos fornecedores",sistemas:"E-mail; WhatsApp Institucional",atividades:[
-    {texto:"Atendimento sobre pagamento pendente",padrao:true},{texto:"Esclarecimento de retencoes tributarias",padrao:false}]},
+    {texto:"Atendimento sobre pagamento pendente",padrao:true},
+    {texto:"Esclarecimento de retencoes tributarias",padrao:false}]},
   {tipo:"Cumprimento de obrigacoes tributarias",sistemas:"SIAFI; SEFIP; DCTFWeb; eSocial",atividades:[
     {texto:"Emissao de DARF",padrao:false},{texto:"Lancamento no SEFIP/GFIP",padrao:false},
-    {texto:"Lancamento no EFD-Reinf / DCTFWeb",padrao:false},{texto:"Envio de IRRF ao fornecedor ou colaborador",padrao:false}]},
+    {texto:"Lancamento no EFD-Reinf / DCTFWeb",padrao:false},
+    {texto:"Envio de IRRF ao fornecedor ou colaborador",padrao:false}]},
   {tipo:"Auxilio a DIRCF - Assuntos Diversos",sistemas:"SEI; Tesouro Gerencial; Trello",atividades:[
     {texto:"Elaboracao de despacho",padrao:false},{texto:"Emissao de relatorio",padrao:false},
     {texto:"Registro no Trello",padrao:false},{texto:"Preenchimento de planilha",padrao:false}]},
   {tipo:"Controle recursos especificos (TED/Emenda)",sistemas:"Planilha; Tesouro Gerencial",atividades:[
     {texto:"Preenchimento de planilha de controle TED/Emenda",padrao:true}]},
   {tipo:"Participacao em atividades",sistemas:"Teams; Presencial",atividades:[
-    {texto:"Participacao em reuniao",padrao:false},{texto:"Participacao em treinamento ou curso",padrao:false}]},
+    {texto:"Participacao em reuniao",padrao:false},
+    {texto:"Participacao em treinamento ou curso",padrao:false}]},
   {tipo:"Ferias",sistemas:"-",atividades:[{texto:"Ferias",padrao:true}]}
 ];
 
-var config=JSON.parse(localStorage.getItem(CONFIG_KEY)||'null')||defaultConfig;
-var registros=JSON.parse(localStorage.getItem(REG_KEY)||'[]');
-var editIdx=-1, editAtvIdx={ci:-1,ai:-1}, editTipoIdx=-1;
+var defaultPit = [
+  {titulo:"Atendimento aos campi e setores quanto a orientacoes tecnicas",tipo:"variavel",horas:7,peso:2},
+  {titulo:"Atendimento aos fornecedores quanto aos pagamentos",tipo:"fixa",horas:2,peso:1},
+  {titulo:"Atendimento as determinacoes e demandas de orgaos externos",tipo:"fixa",horas:2,peso:1},
+  {titulo:"Atividades referentes a Liquidacao de Despesas",tipo:"variavel",horas:30,peso:5},
+  {titulo:"Atividades referentes a liquidacao e pagamento da folha de pessoal",tipo:"fixa",horas:18,peso:1},
+  {titulo:"Atividades referentes ao Pagamento de Despesas",tipo:"variavel",horas:55,peso:6},
+  {titulo:"Auxilio a Diretoria de Contabilidade e Financas e Pro-Reitoria",tipo:"variavel",horas:5,peso:2},
+  {titulo:"Controle e acompanhamento recursos especificos (TED/Emenda)",tipo:"variavel",horas:4,peso:2},
+  {titulo:"Cumprimento de obrigacoes tributarias (SEFIP, FGTS, DARF, ISS, EFD-Reinf, DCTFweb)",tipo:"variavel",horas:5,peso:2},
+  {titulo:"Elaboracao e revisao de fluxos de processos e manuais",tipo:"fixa",horas:3,peso:1},
+  {titulo:"Envio de demandas (liquidacao e pagamento) para os campi",tipo:"variavel",horas:33,peso:5},
+  {titulo:"Envio de IRRF aos fornecedores e colaboradores externos",tipo:"fixa",horas:2,peso:1},
+  {titulo:"Gestao de Recursos Financeiros",tipo:"variavel",horas:4,peso:2},
+  {titulo:"Participacao em atividades",tipo:"variavel",horas:4,peso:2},
+  {titulo:"Regularizacao de pagamento (OBs canceladas)",tipo:"fixa",horas:2,peso:1}
+];
 
-function salvarConfig(){localStorage.setItem(CONFIG_KEY,JSON.stringify(config));}
-function salvarRegs(){localStorage.setItem(REG_KEY,JSON.stringify(registros));}
-function today(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+var config = JSON.parse(localStorage.getItem(CONFIG_KEY)||'null') || defaultConfig;
+var registros = JSON.parse(localStorage.getItem(REG_KEY)||'[]');
+var pitEntregas = JSON.parse(localStorage.getItem(PIT_KEY)||'null') || defaultPit;
+
+function saveConfig(){localStorage.setItem(CONFIG_KEY,JSON.stringify(config));}
+function saveRegs(){localStorage.setItem(REG_KEY,JSON.stringify(registros));}
+function savePit(){localStorage.setItem(PIT_KEY,JSON.stringify(pitEntregas));}
+
+function today(){
+  var d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function setSyncStatus(state,msg){
+  var el=document.getElementById('sync-status');
+  el.className='sync-status';
+  if(state==='ok'){el.classList.add('sync-ok');el.textContent=msg||'Sheets conectado';}
+  else if(state==='err'){el.classList.add('sync-err');el.textContent=msg||'Erro no Sheets';}
+  else{el.classList.add('sync-ing');el.textContent=msg||'Sincronizando...';}
+}
+
+function enviarSheets(reg){
+  setSyncStatus('ing','Salvando no Sheets...');
+  var payload = {
+    data: reg.data ? reg.data.split('-').reverse().join('/') : '',
+    sei: reg.sei||'',
+    tipo: reg.tipo||'',
+    atividades: reg.atividades||'',
+    sistemas: reg.sistemas||'',
+    detalhes: reg.detalhes||''
+  };
+  fetch(SHEETS_URL, {
+    method:'POST',
+    body: JSON.stringify(payload)
+  })
+  .then(function(r){return r.json();})
+  .then(function(d){
+    if(d.status==='ok'){
+      setSyncStatus('ok','Salvo no Sheets');
+      reg.synced = true;
+      saveRegs();
+      renderHistorico();
+    } else {
+      setSyncStatus('err','Erro: '+d.msg);
+      showToast('Salvo localmente. Erro no Sheets.');
+    }
+  })
+  .catch(function(){
+    setSyncStatus('err','Sem conexao');
+    showToast('Salvo localmente. Sem conexao com Sheets.');
+  });
+}
 
 function init(){
-  document.getElementById('data').value=today();
-  popularSelect();renderHistorico();renderConfig();
+  document.getElementById('data').value = today();
+  popularSelect();
+  renderHistorico();
+  renderConfig();
 }
 
 function popularSelect(){
   var s=document.getElementById('tipo');
-  s.innerHTML='<option value="">— Selecione o tipo —</option>';
-  config.forEach(function(c){var o=document.createElement('option');o.value=c.tipo;o.textContent=c.tipo;s.appendChild(o);});
+  s.innerHTML='<option value="">- Selecione o tipo -</option>';
+  config.forEach(function(c){
+    var o=document.createElement('option');
+    o.value=c.tipo;o.textContent=c.tipo;s.appendChild(o);
+  });
 }
 
 function showTab(t,btn){
-  document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('active')});
-  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active')});
-  document.getElementById(t).classList.add('active');btn.classList.add('active');
-  if(t==='historico')renderHistorico();
-  if(t==='config')renderConfig();
-  if(t==='pit')pitRenderLista();
+  document.querySelectorAll('.tab').forEach(function(b){b.classList.remove('active');});
+  document.querySelectorAll('.section').forEach(function(s){s.classList.remove('active');});
+  document.getElementById(t).classList.add('active');
+  btn.classList.add('active');
+  if(t==='historico') renderHistorico();
+  if(t==='config') renderConfig();
+  if(t==='pit') pitRender();
 }
 
 function onTipoChange(){
   var v=document.getElementById('tipo').value;
-  var cf=config.find(function(c){return c.tipo===v});
-  if(!cf){document.getElementById('ativs-field').style.display='none';document.getElementById('comp-field').style.display='none';return;}
+  var cf=config.find(function(c){return c.tipo===v;});
+  if(!cf){
+    document.getElementById('ativs-field').style.display='none';
+    document.getElementById('comp-field').style.display='none';
+    return;
+  }
   document.getElementById('ativs-field').style.display='block';
   document.getElementById('comp-field').style.display='block';
-  var list=document.getElementById('ativs-list');list.innerHTML='';
+  var list=document.getElementById('ativs-list');
+  list.innerHTML='';
   cf.atividades.forEach(function(a,i){
-    var div=document.createElement('div');div.className='atv-item'+(a.padrao?' padrao':'');
+    var div=document.createElement('div');
+    div.className='atv-item'+(a.padrao?' padrao':'');
     var id='atv'+i;
-    div.innerHTML='<input type="checkbox" id="'+id+'" '+(a.padrao?'checked':'')+' onchange="atualizarSistemas()">'
-      +'<label for="'+id+'" class="atv-label">'+a.texto+(a.padrao?'<span class="badge-padrao">padrao</span>':'')+'</label>';
+    var chk=document.createElement('input');
+    chk.type='checkbox';chk.id=id;if(a.padrao)chk.checked=true;
+    chk.onchange=atualizarSistemas;
+    var lbl=document.createElement('label');
+    lbl.htmlFor=id;lbl.className='atv-label';lbl.textContent=a.texto;
+    if(a.padrao){var b=document.createElement('span');b.className='badge-p';b.textContent='padrao';lbl.appendChild(b);}
+    div.appendChild(chk);div.appendChild(lbl);
     list.appendChild(div);
   });
   atualizarSistemas();
@@ -347,142 +444,231 @@ function onTipoChange(){
 
 function atualizarSistemas(){
   var v=document.getElementById('tipo').value;
-  var cf=config.find(function(c){return c.tipo===v});if(!cf)return;
-  var algum=cf.atividades.some(function(a,i){var cb=document.getElementById('atv'+i);return cb&&cb.checked;});
+  var cf=config.find(function(c){return c.tipo===v;});
+  if(!cf) return;
+  var algum=cf.atividades.some(function(a,i){
+    var cb=document.getElementById('atv'+i);return cb&&cb.checked;
+  });
   var box=document.getElementById('sistemas-box');
-  if(algum){box.style.display='block';box.textContent='Sistemas utilizados: '+cf.sistemas;}else{box.style.display='none';}
+  if(algum){box.style.display='block';box.textContent='Sistemas utilizados: '+cf.sistemas;}
+  else{box.style.display='none';}
 }
 
 function getAtividades(){
   var v=document.getElementById('tipo').value;
-  var cf=config.find(function(c){return c.tipo===v});if(!cf)return'';
+  var cf=config.find(function(c){return c.tipo===v;});
+  if(!cf) return '';
   var s=[];
-  cf.atividades.forEach(function(a,i){var cb=document.getElementById('atv'+i);if(cb&&cb.checked)s.push(a.texto);});
-  var c=document.getElementById('complemento').value.trim();if(c)s.push(c);
+  cf.atividades.forEach(function(a,i){
+    var cb=document.getElementById('atv'+i);if(cb&&cb.checked)s.push(a.texto);
+  });
+  var c=document.getElementById('complemento').value.trim();
+  if(c) s.push(c);
   return s.join('; ');
 }
 
 function salvarRegistro(){
   var tipo=document.getElementById('tipo').value;
   if(!tipo){showToast('Selecione o tipo de demanda');return;}
-  var ativs=getAtividades();if(!ativs){showToast('Selecione ao menos uma atividade');return;}
-  var cf=config.find(function(c){return c.tipo===tipo});
-  registros.unshift({id:Date.now(),sei:document.getElementById('sei').value.trim(),data:document.getElementById('data').value,tipo:tipo,atividades:ativs,sistemas:cf?cf.sistemas:'',detalhes:document.getElementById('detalhes').value.trim()});
-  salvarRegs();limparForm();showToast('Registro salvo!');
+  var ativs=getAtividades();
+  if(!ativs){showToast('Selecione ao menos uma atividade');return;}
+  var cf=config.find(function(c){return c.tipo===tipo;});
+  var reg={
+    id:Date.now(),
+    sei:document.getElementById('sei').value.trim(),
+    data:document.getElementById('data').value,
+    tipo:tipo,
+    atividades:ativs,
+    sistemas:cf?cf.sistemas:'',
+    detalhes:document.getElementById('detalhes').value.trim(),
+    synced:false
+  };
+  registros.unshift(reg);
+  saveRegs();
+  limparForm();
+  showToast('Registro salvo! Enviando para Sheets...');
+  enviarSheets(reg);
 }
 
 function limparForm(){
-  document.getElementById('sei').value='';document.getElementById('data').value=today();
-  document.getElementById('tipo').value='';document.getElementById('complemento').value='';document.getElementById('detalhes').value='';
-  document.getElementById('ativs-field').style.display='none';document.getElementById('comp-field').style.display='none';
-  document.getElementById('ativs-list').innerHTML='';document.getElementById('sistemas-box').style.display='none';
+  document.getElementById('sei').value='';
+  document.getElementById('data').value=today();
+  document.getElementById('tipo').value='';
+  document.getElementById('complemento').value='';
+  document.getElementById('detalhes').value='';
+  document.getElementById('ativs-field').style.display='none';
+  document.getElementById('comp-field').style.display='none';
+  document.getElementById('ativs-list').innerHTML='';
+  document.getElementById('sistemas-box').style.display='none';
 }
 
 function renderHistorico(){
   var t=registros.length,liq=0,pag=0;
-  registros.forEach(function(r){if(r.tipo.toLowerCase().indexOf('liquidac')>-1)liq++;if(r.tipo.toLowerCase().indexOf('pagament')>-1)pag++;});
-  document.getElementById('stats').innerHTML='<div class="stat"><div class="n">'+t+'</div><div class="l">Total</div></div><div class="stat"><div class="n">'+liq+'</div><div class="l">Liquidacoes</div></div><div class="stat"><div class="n">'+pag+'</div><div class="l">Pagamentos</div></div>';
+  registros.forEach(function(r){
+    if(r.tipo.toLowerCase().indexOf('liquidac')>-1) liq++;
+    if(r.tipo.toLowerCase().indexOf('pagament')>-1) pag++;
+  });
+  document.getElementById('stats').innerHTML=
+    '<div class="stat"><div class="n">'+t+'</div><div class="l">Total</div></div>'+
+    '<div class="stat"><div class="n">'+liq+'</div><div class="l">Liquidacoes</div></div>'+
+    '<div class="stat"><div class="n">'+pag+'</div><div class="l">Pagamentos</div></div>';
   var el=document.getElementById('lista-registros');
-  if(!registros.length){el.innerHTML='<div class="empty">Nenhum registro ainda.<br>Use a aba "Novo registro" para comecar.</div>';return;}
-  el.innerHTML=registros.map(function(r,i){
+  if(!registros.length){
+    el.innerHTML='<div class="empty">Nenhum registro ainda.</div>';return;
+  }
+  var html='';
+  registros.forEach(function(r,i){
     var df=r.data?r.data.split('-').reverse().join('/'):'';
-    return '<div class="reg-card"><div class="tipo">'+r.tipo+'</div><div class="proc">'+(r.sei||'<span style="color:#aaa;font-weight:400">Sem processo SEI</span>')+'</div><div class="ativs">'+(r.atividades||'')+'</div><div class="meta">'+(df?'<span>📅 '+df+'</span>':'')+(r.sistemas?'<span>💻 '+r.sistemas+'</span>':'')+(r.detalhes?'<span>📄 '+r.detalhes+'</span>':'')+'</div><div class="acoes"><button class="btn-sm" onclick="abrirEdicaoReg('+i+')">Editar</button><button class="btn-sm danger" onclick="excluirReg('+i+')">Excluir</button></div></div>';
-  }).join('');
+    var syncBadge=r.synced
+      ? '<span class="cloud-badge cloud-ok">Sheets</span>'
+      : '<span class="cloud-badge cloud-pend">Pendente</span>';
+    html+='<div class="reg-card">';
+    html+='<div class="tp">'+r.tipo+syncBadge+'</div>';
+    html+='<div class="pc">'+(r.sei||'Sem processo SEI')+'</div>';
+    html+='<div class="av">'+(r.atividades||'')+'</div>';
+    html+='<div class="mt">';
+    if(df) html+='<span>'+df+'</span>';
+    if(r.sistemas) html+='<span>'+r.sistemas+'</span>';
+    if(r.detalhes) html+='<span>'+r.detalhes+'</span>';
+    html+='</div>';
+    html+='<div class="ac">';
+    html+='<button class="btn-sm" onclick="abrirEdicao('+i+')">Editar</button>';
+    if(!r.synced) html+='<button class="btn-sm s" onclick="reenviar('+i+')">Reenviar</button>';
+    html+='<button class="btn-sm d" onclick="excluirReg('+i+')">Excluir</button>';
+    html+='</div></div>';
+  });
+  el.innerHTML=html;
 }
 
-function abrirEdicaoReg(i){
+function reenviar(i){
+  showToast('Reenviando para Sheets...');
+  enviarSheets(registros[i]);
+}
+
+function abrirEdicao(i){
   editIdx=i;var r=registros[i];
-  document.getElementById('e-sei').value=r.sei||'';document.getElementById('e-data').value=r.data||'';
-  document.getElementById('e-tipo').value=r.tipo||'';document.getElementById('e-ativs').value=r.atividades||'';
-  document.getElementById('e-sistemas').value=r.sistemas||'';document.getElementById('e-detalhes').value=r.detalhes||'';
+  document.getElementById('e-sei').value=r.sei||'';
+  document.getElementById('e-data').value=r.data||'';
+  document.getElementById('e-tipo').value=r.tipo||'';
+  document.getElementById('e-ativs').value=r.atividades||'';
+  document.getElementById('e-sistemas').value=r.sistemas||'';
+  document.getElementById('e-detalhes').value=r.detalhes||'';
   document.getElementById('edit-modal').classList.add('open');
 }
 
 function salvarEdicao(){
-  if(editIdx<0)return;
-  registros[editIdx]={id:registros[editIdx].id,sei:document.getElementById('e-sei').value,data:document.getElementById('e-data').value,tipo:document.getElementById('e-tipo').value,atividades:document.getElementById('e-ativs').value,sistemas:document.getElementById('e-sistemas').value,detalhes:document.getElementById('e-detalhes').value};
-  salvarRegs();fecharModal('edit-modal');renderHistorico();showToast('Registro atualizado!');
+  if(editIdx<0) return;
+  registros[editIdx]={
+    id:registros[editIdx].id,
+    sei:document.getElementById('e-sei').value,
+    data:document.getElementById('e-data').value,
+    tipo:document.getElementById('e-tipo').value,
+    atividades:document.getElementById('e-ativs').value,
+    sistemas:document.getElementById('e-sistemas').value,
+    detalhes:document.getElementById('e-detalhes').value,
+    synced:false
+  };
+  saveRegs();fecharModal('edit-modal');renderHistorico();
+  showToast('Atualizado! Reenviando para Sheets...');
+  enviarSheets(registros[editIdx]);
 }
 
-function excluirReg(i){if(!confirm('Excluir este registro?'))return;registros.splice(i,1);salvarRegs();renderHistorico();showToast('Excluido.');}
+function excluirReg(i){
+  if(!confirm('Excluir este registro?')) return;
+  registros.splice(i,1);saveRegs();renderHistorico();showToast('Excluido.');
+}
 
-function fecharModal(id){document.getElementById(id).classList.remove('open');editIdx=-1;editAtvIdx={ci:-1,ai:-1};editTipoIdx=-1;}
+function fecharModal(id){
+  document.getElementById(id).classList.remove('open');
+  editIdx=-1;editAtvIdx={ci:-1,ai:-1};editTipoIdx=-1;
+}
 
 function exportarCSV(){
   if(!registros.length){showToast('Nenhum registro');return;}
   var l=[['Data','Processo SEI','Tipo de Demanda','Atividades Realizadas','Sistemas Utilizados','Detalhes']];
-  registros.forEach(function(r){l.push([r.data?r.data.split('-').reverse().join('/'):'',r.sei||'',r.tipo||'',r.atividades||'',r.sistemas||'',r.detalhes||'']);});
-  var csv=l.map(function(r){return r.map(function(c){return'"'+(c||'').replace(/"/g,'""')+'"';}).join(',');}).join('\n');
-  var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
-  a.download='COFIN_'+today()+'.csv';a.click();showToast('Exportado!');
+  registros.forEach(function(r){
+    l.push([r.data?r.data.split('-').reverse().join('/'):'',r.sei||'',r.tipo||'',r.atividades||'',r.sistemas||'',r.detalhes||'']);
+  });
+  var csv=l.map(function(r){
+    return r.map(function(c){return '"'+(c||'').replace(/"/g,'""')+'"';}).join(',');
+  }).join('\n');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download='COFIN_'+today()+'.csv';a.click();
+  showToast('Exportado!');
 }
 
 function renderConfig(){
-  document.getElementById('config-lista').innerHTML=config.map(function(c,ci){
+  var div=document.getElementById('config-lista');
+  var html='';
+  config.forEach(function(c,ci){
     var np=c.atividades.filter(function(a){return a.padrao;}).length;
-    return '<div class="config-tipo">'
-      +'<div class="config-tipo-header" onclick="toggleBody('+ci+')">'
-      +'<div><div class="config-tipo-title">'+c.tipo+'</div><div class="config-tipo-meta">'+c.atividades.length+' atividades &bull; '+np+' padrao &bull; '+c.sistemas+'</div></div>'
-      +'<div style="display:flex;gap:6px;flex-shrink:0">'
-      +'<button class="btn-sm" onclick="event.stopPropagation();editarTipo('+ci+')">Editar</button>'
-      +'<button class="btn-sm danger" onclick="event.stopPropagation();excluirTipo('+ci+')">Excluir</button>'
-      +'</div></div>'
-      +'<div class="config-tipo-body" id="body-'+ci+'">'
-      +c.atividades.map(function(a,ai){
-        return '<div class="config-atv-row">'
-          +'<input type="checkbox" '+(a.padrao?'checked':'')+' title="Marcar como padrao" onchange="setPadrao('+ci+','+ai+',this.checked)">'
-          +'<span class="config-atv-texto">'+a.texto+'</span>'
-          +'<span class="config-atv-tipo">'+(a.padrao?'padrao':'opcional')+'</span>'
-          +'<button class="btn-sm" onclick="editarAtv('+ci+','+ai+')">Editar</button>'
-          +'<button class="btn-sm danger" onclick="removerAtv('+ci+','+ai+')">Remover</button>'
-          +'</div>';
-      }).join('')
-      +'<div class="add-atv-row">'
-      +'<input type="text" id="ni-'+ci+'" placeholder="Nome da nova atividade...">'
-      +'<button class="toggle-padrao" id="nt-'+ci+'" data-v="false" onclick="flipNovaTipo('+ci+')">opcional</button>'
-      +'<button class="btn-sm success" onclick="addAtv('+ci+')">Adicionar</button>'
-      +'</div>'
-      +'</div></div>';
-  }).join('');
+    html+='<div class="cfg-tipo">';
+    html+='<div class="cfg-hdr" onclick="toggleBody('+ci+')">';
+    html+='<div><div class="cfg-title">'+c.tipo+'</div>';
+    html+='<div class="cfg-meta">'+c.atividades.length+' atividades &bull; '+np+' padrao &bull; '+c.sistemas+'</div></div>';
+    html+='<div style="display:flex;gap:6px;flex-shrink:0">';
+    html+='<button class="btn-sm" onclick="event.stopPropagation();editarTipo('+ci+')">Editar</button>';
+    html+='<button class="btn-sm d" onclick="event.stopPropagation();excluirTipo('+ci+')">Excluir</button>';
+    html+='</div></div>';
+    html+='<div class="cfg-body" id="body-'+ci+'">';
+    c.atividades.forEach(function(a,ai){
+      html+='<div class="cfg-atv">';
+      html+='<input type="checkbox" '+(a.padrao?'checked':'')+' onchange="setPadrao('+ci+','+ai+',this.checked)">';
+      html+='<span class="cfg-atv-txt">'+a.texto+'</span>';
+      html+='<span class="cfg-atv-tp">'+(a.padrao?'padrao':'opcional')+'</span>';
+      html+='<button class="btn-sm" onclick="editarAtv('+ci+','+ai+')">Editar</button>';
+      html+='<button class="btn-sm d" onclick="removerAtv('+ci+','+ai+')">Remover</button>';
+      html+='</div>';
+    });
+    html+='<div class="add-row">';
+    html+='<input type="text" id="ni-'+ci+'" placeholder="Nova atividade...">';
+    html+='<button class="tgl" id="nt-'+ci+'" data-v="false" onclick="flipTgl('+ci+')">opcional</button>';
+    html+='<button class="btn-sm s" onclick="addAtv('+ci+')">Adicionar</button>';
+    html+='</div></div></div>';
+  });
+  div.innerHTML=html;
 }
 
-function toggleBody(ci){var b=document.getElementById('body-'+ci);b.classList.toggle('open');}
-function keepOpen(ci){setTimeout(function(){var b=document.getElementById('body-'+ci);if(b)b.classList.add('open');},20);}
-
-function setPadrao(ci,ai,v){config[ci].atividades[ai].padrao=v;salvarConfig();renderConfig();keepOpen(ci);showToast('Salvo!');}
-
-function flipNovaTipo(ci){
+function toggleBody(ci){
+  document.getElementById('body-'+ci).classList.toggle('open');
+}
+function keepOpen(ci){
+  setTimeout(function(){
+    var b=document.getElementById('body-'+ci);if(b)b.classList.add('open');
+  },20);
+}
+function setPadrao(ci,ai,v){
+  config[ci].atividades[ai].padrao=v;saveConfig();renderConfig();keepOpen(ci);showToast('Salvo!');
+}
+function flipTgl(ci){
   var b=document.getElementById('nt-'+ci);var v=b.getAttribute('data-v')==='true';
-  b.setAttribute('data-v',!v);b.textContent=!v?'padrao':'opcional';b.className='toggle-padrao'+(!v?' on':'');
+  b.setAttribute('data-v',String(!v));b.textContent=!v?'padrao':'opcional';
+  b.className='tgl'+(!v?' on':'');
 }
-
 function addAtv(ci){
   var inp=document.getElementById('ni-'+ci);var t=inp.value.trim();
   if(!t){showToast('Digite o nome da atividade');return;}
   var padrao=document.getElementById('nt-'+ci).getAttribute('data-v')==='true';
   config[ci].atividades.push({texto:t,padrao:padrao});
-  salvarConfig();popularSelect();renderConfig();keepOpen(ci);showToast('Atividade adicionada!');
+  saveConfig();popularSelect();renderConfig();keepOpen(ci);showToast('Atividade adicionada!');
 }
-
 function editarAtv(ci,ai){
   editAtvIdx={ci:ci,ai:ai};var a=config[ci].atividades[ai];
   document.getElementById('atv-texto').value=a.texto;
-  document.getElementById(a.padrao?'atv-r-padrao':'atv-r-opcional').checked=true;
+  document.getElementById(a.padrao?'atv-r-p':'atv-r-o').checked=true;
   document.getElementById('atv-modal').classList.add('open');
 }
-
-function salvarAtvEdicao(){
+function salvarAtvEd(){
   var ci=editAtvIdx.ci,ai=editAtvIdx.ai;if(ci<0)return;
   var t=document.getElementById('atv-texto').value.trim();if(!t){showToast('Digite o texto');return;}
-  config[ci].atividades[ai]={texto:t,padrao:document.getElementById('atv-r-padrao').checked};
-  salvarConfig();popularSelect();fecharModal('atv-modal');renderConfig();keepOpen(ci);showToast('Atualizado!');
+  config[ci].atividades[ai]={texto:t,padrao:document.getElementById('atv-r-p').checked};
+  saveConfig();popularSelect();fecharModal('atv-modal');renderConfig();keepOpen(ci);showToast('Atualizado!');
 }
-
 function removerAtv(ci,ai){
-  if(!confirm('Remover esta atividade?'))return;
-  config[ci].atividades.splice(ai,1);salvarConfig();popularSelect();renderConfig();keepOpen(ci);showToast('Removida.');
+  if(!confirm('Remover esta atividade?')) return;
+  config[ci].atividades.splice(ai,1);saveConfig();popularSelect();renderConfig();keepOpen(ci);showToast('Removida.');
 }
-
 function editarTipo(ci){
   editTipoIdx=ci;
   document.getElementById('tipo-modal-title').textContent='Editar tipo de demanda';
@@ -490,125 +676,108 @@ function editarTipo(ci){
   document.getElementById('nt-sistemas').value=config[ci].sistemas;
   document.getElementById('tipo-modal').classList.add('open');
 }
-
-function abrirModalNovoTipo(){
+function abrirNovoTipo(){
   editTipoIdx=-1;
   document.getElementById('tipo-modal-title').textContent='Novo tipo de demanda';
   document.getElementById('nt-nome').value='';document.getElementById('nt-sistemas').value='';
   document.getElementById('tipo-modal').classList.add('open');
 }
-
 function salvarTipo(){
   var nome=document.getElementById('nt-nome').value.trim();
   if(!nome){showToast('Digite o nome');return;}
   var sis=document.getElementById('nt-sistemas').value.trim()||'-';
   if(editTipoIdx>=0){config[editTipoIdx].tipo=nome;config[editTipoIdx].sistemas=sis;showToast('Tipo atualizado!');}
   else{config.push({tipo:nome,sistemas:sis,atividades:[]});showToast('Tipo criado!');}
-  salvarConfig();popularSelect();fecharModal('tipo-modal');renderConfig();
+  saveConfig();popularSelect();fecharModal('tipo-modal');renderConfig();
 }
-
 function excluirTipo(ci){
-  if(!confirm('Excluir o tipo "'+config[ci].tipo+'" e todas as suas atividades?'))return;
-  config.splice(ci,1);salvarConfig();popularSelect();renderConfig();showToast('Tipo excluido.');
+  if(!confirm('Excluir o tipo e todas as atividades?')) return;
+  config.splice(ci,1);saveConfig();popularSelect();renderConfig();showToast('Excluido.');
 }
 
-function showToast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2200);}
+function pitCalc(){
+  pitRender();
+}
 
+function pitRender(){
+  var total=parseFloat(document.getElementById('pit-total').value)||0;
+  var fixaSum=0;
+  pitEntregas.forEach(function(e){if(e.tipo==='fixa') fixaSum+=e.horas;});
+  var varPool=total-fixaSum;
+  var varPeso=0;
+  pitEntregas.forEach(function(e){if(e.tipo==='variavel') varPeso+=e.peso;});
 
-var pitEntregas = JSON.parse(localStorage.getItem('cofin_pit')||'null') || [
-  {titulo:"Atendimento aos campi e setores quanto a orientacoes tecnicas", tipo:"variavel", horas:7, peso:2},
-  {titulo:"Atendimento aos fornecedores quanto aos pagamentos", tipo:"fixa", horas:2, peso:1},
-  {titulo:"Atendimento e/ou solicitacao de atendimento as determinacoes e demandas de orgaos externos", tipo:"fixa", horas:2, peso:1},
-  {titulo:"Atividades referentes a Liquidacao de Despesas", tipo:"variavel", horas:30, peso:5},
-  {titulo:"Atividades referentes a liquidacao e pagamento de despesas da folha de pagamento de pessoal", tipo:"fixa", horas:18, peso:1},
-  {titulo:"Atividades referentes ao Pagamento de Despesas", tipo:"variavel", horas:55, peso:6},
-  {titulo:"Auxilio a Diretoria de Contabilidade e Financas e Pro-Reitoria de Administracao", tipo:"variavel", horas:5, peso:2},
-  {titulo:"Controle, acompanhamento recursos especificos, TED, emenda por liquidacao/pagamento", tipo:"variavel", horas:4, peso:2},
-  {titulo:"Cumprimento de obrigacoes tributarias (SEFIP/GFIP, PIS/PASEP, FGTS, DARF, ISS, EFD-Reinf, eSocial, DCTFweb)", tipo:"variavel", horas:5, peso:2},
-  {titulo:"Elaboracao e revisao de fluxos de processos, manuais e procedimentos", tipo:"fixa", horas:3, peso:1},
-  {titulo:"Envio de demandas (liquidacao e pagamento) para os campi", tipo:"variavel", horas:33, peso:5},
-  {titulo:"Envio de IRRF aos fornecedores e colaboradores externos", tipo:"fixa", horas:2, peso:1},
-  {titulo:"Gestao de Recursos Financeiros", tipo:"variavel", horas:4, peso:2},
-  {titulo:"Participacao em atividades", tipo:"variavel", horas:4, peso:2},
-  {titulo:"Regularizacao de pagamento (OBs canceladas)", tipo:"fixa", horas:2, peso:1}
-];
-
-function salvarPit(){localStorage.setItem('cofin_pit',JSON.stringify(pitEntregas));}
-
-function pitRenderLista(){
-  var total = parseFloat(document.getElementById('pit-total').value)||0;
-  var fixaTotal = pitEntregas.filter(function(e){return e.tipo==='fixa';}).reduce(function(s,e){return s+e.horas;},0);
-  var varPool = total - fixaTotal;
-  var varPeso = pitEntregas.filter(function(e){return e.tipo==='variavel';}).reduce(function(s,e){return s+e.peso;},0);
-
-  var html = pitEntregas.map(function(e,i){
-    var calc = 0;
+  var html='';
+  pitEntregas.forEach(function(e,i){
+    var calc=0;
     if(e.tipo==='fixa'){
-      calc = e.horas;
+      calc=e.horas;
     } else {
-      calc = varPool>0 && varPeso>0 ? Math.round((e.peso/varPeso)*varPool) : 0;
+      calc=(varPool>0&&varPeso>0)?Math.round((e.peso/varPeso)*varPool):0;
     }
-    var pct = total>0 ? Math.min(100,Math.round((calc/total)*100)) : 0;
-    return '<div class="pit-row">'
-      +'<div class="pit-entrega">'+e.titulo+'</div>'
-      +'<button class="pit-tipo-btn '+e.tipo+'" onclick="pitToggleTipo('+i+')">'+(e.tipo==='fixa'?'Fixa':'Variavel')+'</button>'
-      +(e.tipo==='fixa'
-        ? '<input class="pit-input" type="number" min="0" max="999" value="'+e.horas+'" onchange="pitSetHoras('+i+',this.value)" title="Horas fixas">'
-        : '<div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:#aaa">Peso</span><input class="pit-input" type="number" min="1" max="10" value="'+e.peso+'" onchange="pitSetPeso('+i+',this.value)" title="Peso relativo" style="width:52px"></div>')
-      +'<div class="pit-calc" style="color:'+(e.tipo==='fixa'?'#1a5296':'#2e7d32')+'">'+calc+'h</div>'
-      +'<div class="pit-bar"><div class="pit-bar-fill" style="width:'+pct+'%"></div></div>'
-      +'</div>';
-  }).join('');
-  document.getElementById('pit-lista').innerHTML = html;
-  pitAtualizarTotais(total, fixaTotal, varPool);
-  pitMostrarResultado(total);
+    var pct=total>0?Math.min(100,Math.round((calc/total)*100)):0;
+    var cor=e.tipo==='fixa'?'#1a5296':'#2e7d32';
+    html+='<div class="pit-row">';
+    html+='<div class="pit-ent">'+e.titulo+'</div>';
+    html+='<button class="pit-btn '+e.tipo+'" onclick="pitToggle('+i+')">'+(e.tipo==='fixa'?'Fixa':'Variavel')+'</button>';
+    if(e.tipo==='fixa'){
+      html+='<input class="pit-inp" type="number" min="0" max="999" value="'+e.horas+'" onchange="pitSetH('+i+',this.value)">';
+    } else {
+      html+='<div style="display:flex;align-items:center;gap:4px"><span style="font-size:11px;color:#aaa">Peso</span>';
+      html+='<input class="pit-inp" type="number" min="1" max="10" value="'+e.peso+'" onchange="pitSetP('+i+',this.value)" style="width:52px"></div>';
+    }
+    html+='<div class="pit-h" style="color:'+cor+'">'+calc+'h</div>';
+    html+='<div class="pit-bar"><div class="pit-bar-f" style="width:'+pct+'%"></div></div>';
+    html+='</div>';
+  });
+  document.getElementById('pit-lista').innerHTML=html;
+
+  if(total>0){
+    document.getElementById('pit-resumo').textContent=total+'h previstas  |  '+fixaSum+'h fixas  |  '+(varPool>0?varPool:0)+'h variaveis';
+    var al=document.getElementById('pit-alerta');
+    if(varPool<0){
+      al.style.display='block';
+      al.textContent='Atencao: horas fixas ('+fixaSum+'h) superam o total ('+total+'h). Reduza as horas fixas ou aumente o total.';
+    } else {
+      al.style.display='none';
+    }
+    pitMostrarResultado(total,fixaSum,varPool,varPeso);
+  } else {
+    document.getElementById('pit-resultado').style.display='none';
+    document.getElementById('pit-resumo').textContent='-';
+  }
 }
 
-function pitAtualizarTotais(total, fixaTotal, varPool){
-  var usadas = total>0 ? total : 0;
-  document.getElementById('pit-usadas').textContent = total+'h previstas  •  '+fixaTotal+'h fixas  •  '+(varPool>0?varPool:0)+'h variaveis';
-  var alerta = document.getElementById('pit-alerta');
-  if(total>0 && varPool<0){
-    alerta.style.display='block';
-    alerta.style.background='#fff3e0';alerta.style.border='1px solid #ffe0b2';alerta.style.color='#e65100';
-    alerta.textContent='Atencao: as horas fixas ('+fixaTotal+'h) superam o total informado ('+total+'h). Reduza as horas fixas ou aumente o total.';
-  } else { alerta.style.display='none'; }
-}
-
-function pitMostrarResultado(total){
-  if(!total){document.getElementById('pit-resultado').style.display='none';return;}
-  var fixaTotal=pitEntregas.filter(function(e){return e.tipo==='fixa';}).reduce(function(s,e){return s+e.horas;},0);
-  var varPool=total-fixaTotal;
-  var varPeso=pitEntregas.filter(function(e){return e.tipo==='variavel';}).reduce(function(s,e){return s+e.peso;},0);
+function pitMostrarResultado(total,fixaSum,varPool,varPeso){
   var linhas=pitEntregas.map(function(e){
-    var h = e.tipo==='fixa' ? e.horas : (varPool>0&&varPeso>0?Math.round((e.peso/varPeso)*varPool):0);
+    var h=e.tipo==='fixa'?e.horas:(varPool>0&&varPeso>0?Math.round((e.peso/varPeso)*varPool):0);
     return e.titulo+': '+h+'h';
   });
   document.getElementById('pit-resultado').style.display='block';
-  document.getElementById('pit-resultado-texto').textContent=linhas.join('
-');
+  document.getElementById('pit-txt').textContent=linhas.join('\n');
 }
 
-function pitCalcular(){pitRenderLista();}
-
-function pitToggleTipo(i){
-  pitEntregas[i].tipo = pitEntregas[i].tipo==='fixa'?'variavel':'fixa';
-  salvarPit();pitRenderLista();
+function pitToggle(i){
+  pitEntregas[i].tipo=pitEntregas[i].tipo==='fixa'?'variavel':'fixa';
+  savePit();pitRender();
 }
-
-function pitSetHoras(i,v){
-  pitEntregas[i].horas=Math.max(0,parseInt(v)||0);
-  salvarPit();pitRenderLista();
+function pitSetH(i,v){
+  pitEntregas[i].horas=Math.max(0,parseInt(v)||0);savePit();pitRender();
 }
-
-function pitSetPeso(i,v){
-  pitEntregas[i].peso=Math.max(1,parseInt(v)||1);
-  salvarPit();pitRenderLista();
+function pitSetP(i,v){
+  pitEntregas[i].peso=Math.max(1,parseInt(v)||1);savePit();pitRender();
 }
-
 function pitCopiar(){
-  var t=document.getElementById('pit-resultado-texto').textContent;
-  navigator.clipboard.writeText(t).then(function(){showToast('Copiado para a area de transferencia!');}).catch(function(){showToast('Selecione o texto e copie manualmente.');});
+  var t=document.getElementById('pit-txt').textContent;
+  navigator.clipboard.writeText(t)
+    .then(function(){showToast('Copiado!');})
+    .catch(function(){showToast('Selecione o texto e copie manualmente.');});
+}
+
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2200);
 }
 
 init();
