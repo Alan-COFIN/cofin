@@ -3,12 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COFIN - Registro de Atividades PGD</title>
+<title>Entreguei — Registro de Atividades PGD</title>
 <link rel="manifest" id="pwa-manifest">
 <meta name="theme-color" content="#1F3864">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="COFIN PGD">
+<meta name="apple-mobile-web-app-title" content="Entreguei">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:#f5f6f8;color:#1a1a1a;min-height:100vh}
@@ -156,7 +158,17 @@ textarea{resize:vertical;min-height:64px}
 </head>
 <body>
 <header>
-  <h1>COFIN - Registro de Atividades</h1>
+  <div style="display:flex;align-items:center;gap:12px">
+    <svg width="36" height="36" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+      <rect width="512" height="512" rx="96" fill="#0D8A63"/>
+      <rect x="40" y="40" width="432" height="432" rx="72" fill="none" stroke="#34D399" stroke-width="12"/>
+      <polyline points="128,266 218,356 388,166" fill="none" stroke="#ECFDF5" stroke-width="56" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div>
+      <div style="font-family:'Nunito',system-ui,sans-serif;font-size:20px;font-weight:900;letter-spacing:-0.5px;line-height:1.1">entreguei</div>
+      <div style="font-size:10px;opacity:0.6;letter-spacing:2px;font-weight:600">REGISTRO DE ATIVIDADES · PGD</div>
+    </div>
+  </div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <span id="alerta-pit" style="display:none;font-size:11px;padding:3px 10px;border-radius:20px;background:rgba(255,200,0,0.25);color:#ffe082;font-weight:500;cursor:pointer" onclick="showTab('relatorio',document.querySelectorAll('.tab')[4])">⚠ Entregas sem registro</span>
     <span id="sync-status" class="sync-status sync-ok">Sheets conectado</span>
@@ -1611,8 +1623,8 @@ function instalarApp(){
 
 // Inline manifest
 var manifest = {
-  name: 'COFIN - Registro de Atividades PGD',
-  short_name: 'COFIN PGD',
+  name: 'Entreguei — Registro de Atividades PGD',
+  short_name: 'Entreguei',
   start_url: './',
   display: 'standalone',
   background_color: '#f5f6f8',
