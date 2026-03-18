@@ -127,6 +127,26 @@ textarea{resize:vertical;min-height:64px}
 .dragging{opacity:0.4;border:2px dashed #2E75B6 !important}
 .drag-over{border-top:2px solid #2E75B6 !important}
 
+
+.modelos-btn{font-size:11px;padding:4px 12px;border-radius:6px;cursor:pointer;border:1.5px solid #c5cae9;background:#f8f9ff;color:#3949ab;font-weight:500;margin-top:6px;display:inline-block}
+.modelos-btn:hover{background:#e8eaf6}
+.modelos-dropdown{background:#fff;border:1.5px solid #e0e0e0;border-radius:10px;margin-top:6px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.1);display:none}
+.modelos-dropdown.open{display:block}
+.modelo-item{padding:9px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid #f5f5f5;color:#1a1a1a;line-height:1.4;display:flex;align-items:flex-start;gap:8px}
+.modelo-item:last-child{border-bottom:none}
+.modelo-item:hover{background:#f8f9ff}
+.modelo-item-txt{flex:1}
+.modelo-destaque{background:#fff9c4;padding:1px 3px;border-radius:3px;font-weight:600}
+.modelos-header{padding:8px 14px;background:#f5f6f8;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between}
+.modelos-header span{font-size:11px;font-weight:700;color:#3949ab;text-transform:uppercase;letter-spacing:0.5px}
+.autocomplete-box{position:relative}
+.autocomplete-list{position:absolute;left:0;right:0;background:#fff;border:1.5px solid #e0e0e0;border-radius:8px;z-index:50;max-height:180px;overflow-y:auto;box-shadow:0 4px 12px rgba(0,0,0,0.1);display:none}
+.autocomplete-list.open{display:block}
+.autocomplete-item{padding:8px 12px;font-size:13px;cursor:pointer;border-bottom:1px solid #f5f5f5}
+.autocomplete-item:last-child{border-bottom:none}
+.autocomplete-item:hover{background:#f8f9ff}
+.autocomplete-item em{font-style:normal;font-weight:700;color:#2E75B6}
+
 @media(max-width:520px){.row{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.cfg-hdr{flex-direction:column;align-items:flex-start;gap:8px}.pit-bar{display:none}}
 </style>
 </head>
@@ -161,9 +181,20 @@ textarea{resize:vertical;min-height:64px}
       </div>
       <div id="comp-field" style="display:none" class="field">
         <label>Complemento <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
-        <textarea id="complemento" placeholder="Acrescente algo que nao esta na lista..."></textarea>
+        <button class="modelos-btn" onclick="modelosAbrir()">Modelos prontos</button>
+        <div class="modelos-dropdown" id="modelos-dd"></div>
+        <div class="autocomplete-box" style="margin-top:6px">
+          <textarea id="complemento" placeholder="Acrescente algo que nao esta na lista..." oninput="acShow('complemento','ac-comp')" onblur="acHide('ac-comp')"></textarea>
+          <div class="autocomplete-list" id="ac-comp"></div>
+        </div>
       </div>
-      <div class="field"><label>Detalhes / Documento gerado</label><input type="text" id="detalhes" placeholder="Ex: Despacho COFIN SEI n 1304283, NP163..."></div>
+      <div class="field">
+        <label>Detalhes / Documento gerado</label>
+        <div class="autocomplete-box">
+          <input type="text" id="detalhes" placeholder="Ex: Despacho COFIN SEI n 1304283, NP163..." oninput="acShow('detalhes','ac-det')" onblur="acHide('ac-det')">
+          <div class="autocomplete-list" id="ac-det"></div>
+        </div>
+      </div>
 
       <div id="ia-panel" style="display:none">
         <div class="ia-box">
@@ -488,6 +519,7 @@ function enviarSheets(reg){
 }
 
 function init(){
+  acBuild();
   document.getElementById('data').value = today();
   popularSelect();
   renderHistorico();
@@ -588,6 +620,7 @@ function salvarRegistro(){
   showToast('Registro salvo! Enviando para Sheets...');
   enviarSheets(reg);
   iaAtualizarSugestoes();
+  acBuild();
 }
 
 function limparForm(){
@@ -622,7 +655,7 @@ function renderHistorico(){
     var syncBadge=r.synced
       ? '<span class="cloud-badge cloud-ok">Sheets</span>'
       : '<span class="cloud-badge cloud-pend">Pendente</span>';
-    html+='<div class="reg-card" id="reg-card-'+i+'">';
+    html+='<div class="reg-card" id="reg-card-'+i+'" data-drag-idx="'+i+'" data-drag-key="hist">';
     html+='<div style="display:flex;justify-content:flex-end"><span class="drag-handle" style="font-size:13px" title="Arrastar para reordenar">&#8597;</span></div>';
     html+='<div class="tp">'+r.tipo+syncBadge+'</div>';
     html+='<div class="pc">'+(r.sei||'Sem processo SEI')+'</div>';
@@ -641,7 +674,7 @@ function renderHistorico(){
   el.innerHTML=html;
   registros.forEach(function(r,i){
     var card=document.getElementById('reg-card-'+i);
-    if(card) makeDraggable(card,el,'hist',-1);
+    if(card) makeDraggable(card,'hist',-1);
   });
 }
 
@@ -725,7 +758,7 @@ function renderConfig(){
   var html='';
   config.forEach(function(c,ci){
     var np=c.atividades.filter(function(a){return a.padrao;}).length;
-    html+='<div class="cfg-tipo" id="cfg-tipo-'+ci+'">';
+    html+='<div class="cfg-tipo" id="cfg-tipo-'+ci+'" data-drag-idx="'+ci+'" data-drag-key="tipo">';
     html+='<div class="cfg-hdr" onclick="toggleBody('+ci+')" style="display:flex;align-items:center">';
     html+='<span class="drag-handle" onclick="event.stopPropagation()" title="Arrastar para reordenar">&#8597;</span>';
     html+='<div style="flex:1"><div class="cfg-title">'+c.tipo+'</div>';
@@ -736,7 +769,7 @@ function renderConfig(){
     html+='</div></div>';
     html+='<div class="cfg-body" id="body-'+ci+'" id="atv-list-'+ci+'">';
     c.atividades.forEach(function(a,ai){
-      html+='<div class="cfg-atv" id="cfg-atv-'+ci+'-'+ai+'">';
+      html+='<div class="cfg-atv" id="cfg-atv-'+ci+'-'+ai+'" data-drag-idx="'+ai+'" data-drag-key="atv" data-drag-ci="'+ci+'">';
       html+='<span class="drag-handle" title="Arrastar">&#8597;</span>';
       html+='<input type="checkbox" '+(a.padrao?'checked':'')+' onchange="setPadrao('+ci+','+ai+',this.checked)">';
       html+='<span class="cfg-atv-txt">'+a.texto+'</span>';
@@ -756,13 +789,12 @@ function renderConfig(){
   var tipoList=document.getElementById('config-lista');
   config.forEach(function(c,ci){
     var tipoEl=document.getElementById('cfg-tipo-'+ci);
-    if(tipoEl) makeDraggable(tipoEl,tipoList,'tipo',-1);
-    // attach drag to atividades
+    if(tipoEl) makeDraggable(tipoEl,'tipo',-1);
     var bodyEl=document.getElementById('body-'+ci);
     if(bodyEl){
       c.atividades.forEach(function(a,ai){
         var atvEl=document.getElementById('cfg-atv-'+ci+'-'+ai);
-        if(atvEl) makeDraggable(atvEl,bodyEl,'atv',ci);
+        if(atvEl) makeDraggable(atvEl,'atv',ci);
       });
     }
   });
@@ -881,48 +913,55 @@ function iaAtualizarSugestoes(){
 
 // ── Drag & Drop universal ──────────────────────────────────────
 var dragSrc = null;
-var dragList = null;
 var dragKey = null;
 var dragCi = -1;
 
-function makeDraggable(el, list, key, ci){
+function makeDraggable(el, key, ci){
   el.setAttribute('draggable','true');
   el.addEventListener('dragstart',function(e){
-    dragSrc=el;dragList=list;dragKey=key;dragCi=ci;
-    setTimeout(function(){el.classList.add('dragging');},0);
+    dragSrc=el; dragKey=key; dragCi=ci;
     e.dataTransfer.effectAllowed='move';
+    e.dataTransfer.setData('text/plain', el.getAttribute('data-drag-idx'));
+    setTimeout(function(){el.classList.add('dragging');},0);
   });
   el.addEventListener('dragend',function(){
     el.classList.remove('dragging');
     document.querySelectorAll('.drag-over').forEach(function(x){x.classList.remove('drag-over');});
+    dragSrc=null;
   });
   el.addEventListener('dragover',function(e){
-    e.preventDefault();e.dataTransfer.dropEffect='move';
-    if(el!==dragSrc) el.classList.add('drag-over');
+    e.preventDefault();
+    e.dataTransfer.dropEffect='move';
+    if(dragSrc && el!==dragSrc && el.getAttribute('data-drag-key')===dragKey) {
+      document.querySelectorAll('.drag-over').forEach(function(x){x.classList.remove('drag-over');});
+      el.classList.add('drag-over');
+    }
   });
-  el.addEventListener('dragleave',function(){el.classList.remove('drag-over');});
+  el.addEventListener('dragleave',function(e){
+    if(!el.contains(e.relatedTarget)) el.classList.remove('drag-over');
+  });
   el.addEventListener('drop',function(e){
     e.preventDefault();e.stopPropagation();
     el.classList.remove('drag-over');
-    if(!dragSrc||dragSrc===el) return;
-    if(dragKey!==key||(key==='atv'&&dragCi!==ci)) return;
-    var items=Array.from(list.children);
-    var fromIdx=items.indexOf(dragSrc);
-    var toIdx=items.indexOf(el);
-    if(fromIdx<0||toIdx<0) return;
-    if(key==='tipo'){
+    if(!dragSrc || dragSrc===el) return;
+    if(dragKey!==el.getAttribute('data-drag-key')) return;
+    if(dragKey==='atv' && dragCi !== parseInt(el.getAttribute('data-drag-ci'))) return;
+    var fromIdx = parseInt(dragSrc.getAttribute('data-drag-idx'));
+    var toIdx = parseInt(el.getAttribute('data-drag-idx'));
+    if(isNaN(fromIdx)||isNaN(toIdx)) return;
+    if(dragKey==='tipo'){
       var moved=config.splice(fromIdx,1)[0];
       config.splice(toIdx,0,moved);
       saveConfig();popularSelect();renderConfig();
-    } else if(key==='atv'){
-      var moved=config[ci].atividades.splice(fromIdx,1)[0];
-      config[ci].atividades.splice(toIdx,0,moved);
-      saveConfig();renderConfig();keepOpen(ci);
-    } else if(key==='pit'){
+    } else if(dragKey==='atv'){
+      var moved=config[dragCi].atividades.splice(fromIdx,1)[0];
+      config[dragCi].atividades.splice(toIdx,0,moved);
+      saveConfig();renderConfig();keepOpen(dragCi);
+    } else if(dragKey==='pit'){
       var moved=pitEntregas.splice(fromIdx,1)[0];
       pitEntregas.splice(toIdx,0,moved);
       savePit();pitRender();
-    } else if(key==='hist'){
+    } else if(dragKey==='hist'){
       var moved=registros.splice(fromIdx,1)[0];
       registros.splice(toIdx,0,moved);
       saveRegs();renderHistorico();
@@ -930,6 +969,119 @@ function makeDraggable(el, list, key, ci){
     showToast('Ordem atualizada!');
   });
 }
+
+
+var defaultModelos = {
+  "Atendimento aos campi e setores quanto a orientacoes tecnicas": [
+    "Orientacao tecnica sobre inclusao de inscricao generica ao [Campus/Setor]",
+    "Orientacao tecnica sobre inclusao de VPD ao [Campus/Setor]",
+    "Orientacao tecnica sobre inclusao de empenho ao [Campus/Setor]",
+    "Orientacao tecnica sobre inclusao de contrato ao [Campus/Setor]",
+    "Orientacao tecnica sobre inclusao de favorecido ao [Campus/Setor]",
+    "Comunicacao sobre alteracoes no processo [Numero] ao [Campus/Setor]",
+    "Orientacao sobre cadastro do documento fiscal no Compranet ao [Campus/Setor]",
+    "Orientacao sobre instrumento de cobranca ao [Campus/Setor]",
+    "Orientacao sobre correcao de NP ao [Campus/Setor]",
+    "Orientacao sobre correcao de RP ao [Campus/Setor]",
+    "Orientacao sobre deducao federal ao [Campus/Setor]",
+    "Orientacao sobre retencao de INSS ao [Campus/Setor]",
+    "Resposta a consulta sobre pagamento ao [Campus/Setor]"
+  ],
+  "Atendimento aos fornecedores quanto aos pagamentos": [
+    "Informado ao fornecedor [Nome] sobre previsao de pagamento",
+    "Esclarecimento ao fornecedor [Nome] sobre retencao tributaria",
+    "Solicitacao de nota fiscal ou documentacao faltante ao fornecedor [Nome]",
+    "Verificacao de dados bancarios do fornecedor [Nome]",
+    "Comunicacao ao fornecedor [Nome] sobre pagamento realizado - OB [Numero]"
+  ],
+  "Atendimento as determinacoes e demandas de orgaos externos": [
+    "Elaboracao de resposta a demanda do [Orgao] referente ao processo [Numero]",
+    "Envio de documentacao solicitada pelo [Orgao]",
+    "Atendimento a diligencia do [Orgao] sobre [Assunto]"
+  ],
+  "Atividades referentes a Liquidacao de Despesas": [
+    "Liquidacao da NF/FAT n. [Numero] do fornecedor [Nome] - processo [SEI]",
+    "Liquidacao de bolsa referente a [Programa] - processo [SEI]",
+    "Liquidacao de bolsa professor externo - processo [SEI]",
+    "Liquidacao PCDP n. [Numero] - processo [SEI]",
+    "Despacho de liquidacao encaminhado para COERG - SEI n. [Numero]",
+    "Conferencia e liquidacao do PASEP - processo [SEI]"
+  ],
+  "Atividades referentes a liquidacao e pagamento da folha de pessoal": [
+    "Liquidacao da folha de pagamento referente a competencia [Mes/Ano]",
+    "Pagamento da folha de pessoal competencia [Mes/Ano] - OB [Numero]",
+    "Solicitacao de recurso financeiro para folha e GEAP competencia [Mes/Ano]",
+    "Liquidacao e pagamento do PASEP competencia [Mes/Ano]"
+  ],
+  "Atividades referentes ao Pagamento de Despesas": [
+    "Pagamento da NF/FAT n. [Numero] - fornecedor [Nome] - [NP/RP]",
+    "Pagamento de bolsas referente a [Programa] - [RP]",
+    "Pagamento PCDP n. [Numero] - processo [SEI]",
+    "Pagamento realizado - OB [Numero] - processo [SEI]",
+    "Consulta de recurso TED/Emenda para pagamento do processo [SEI]",
+    "Regularizacao de OB cancelada - processo [SEI]"
+  ],
+  "Auxilio a Diretoria de Contabilidade e Financas e Pro-Reitoria de Administracao": [
+    "Elaboracao de despacho sobre [Assunto] a pedido da DIRCF",
+    "Emissao de relatorio gerencial referente a [Assunto]",
+    "Preenchimento de planilha de controle de [Assunto]",
+    "Registro de demanda no Trello - [Assunto]",
+    "Atendimento a demanda da PROAD referente a [Assunto]"
+  ],
+  "Controle e acompanhamento recursos especificos (TED/Emenda)": [
+    "Preenchimento da planilha de controle TED [Numero]/[Ano]",
+    "Preenchimento da planilha de controle Emenda [Numero]/[Ano]",
+    "Consulta de saldo disponivel para TED [Numero] no Tesouro Gerencial",
+    "Verificacao de liberacao de recurso TED [Numero] no SIAFI",
+    "Preenchimento do SIMEC referente a TED [Numero]"
+  ],
+  "Cumprimento de obrigacoes tributarias (SEFIP, FGTS, DARF, ISS, EFD-Reinf, DCTFweb)": [
+    "Emissao e pagamento de DARF referente a [Tributo] competencia [Mes/Ano]",
+    "Fechamento e transmissao do EFD-Reinf competencia [Mes/Ano]",
+    "Transmissao da DCTFWeb competencia [Mes/Ano]",
+    "Lancamento no SEFIP/GFIP competencia [Mes/Ano]",
+    "Geracao e pagamento de guia de ISS - NF [Numero]",
+    "Recolhimento de GPS competencia [Mes/Ano]"
+  ],
+  "Elaboracao e revisao de fluxos de processos e manuais": [
+    "Elaboracao do fluxo de processo referente a [Atividade]",
+    "Revisao do manual de [Atividade]",
+    "Atualizacao do procedimento de [Atividade]",
+    "Despacho solicitando aprovacao e divulgacao do [Documento]"
+  ],
+  "Envio de demandas (liquidacao e pagamento) para os campi": [
+    "Despacho autorizando pagamento ao [Campus] - processo [SEI]",
+    "Envio de demanda de liquidacao ao [Campus] - processo [SEI]",
+    "Preenchimento da planilha de acompanhamento - processo [SEI]",
+    "Comunicacao ao [Campus] sobre pendencia no processo [SEI]"
+  ],
+  "Envio de IRRF aos fornecedores e colaboradores externos": [
+    "Envio de comprovante de IRRF ao fornecedor [Nome] - competencia [Ano]",
+    "Envio de declaracao de rendimentos ao colaborador [Nome] - [Ano]",
+    "Envio de informe de rendimentos ao [Nome] referente a [Ano]"
+  ],
+  "Gestao de Recursos Financeiros": [
+    "Emissao de Nota de Lancamento (NL) referente a [Assunto]",
+    "Emissao de Programacao Financeira (PF) referente a [Assunto]",
+    "Emissao de Nota de Sistema (NS) referente a [Assunto]",
+    "Consulta e acompanhamento de saldo financeiro - [Periodo]",
+    "Envio de Comunica no SIAFI referente a [Assunto]"
+  ],
+  "Participacao em atividades": [
+    "Participacao em reuniao sobre [Assunto] - [Data]",
+    "Participacao em treinamento de [Tema] promovido por [Orgao]",
+    "Participacao em comissao de [Assunto]",
+    "Elaboracao de ata da reuniao de [Assunto]"
+  ],
+  "Regularizacao de pagamento (OBs canceladas)": [
+    "Regularizacao da OB [Numero] cancelada - processo [SEI]",
+    "Consulta e levantamento de OBs canceladas - competencia [Mes/Ano]",
+    "Emissao de lista de credores para regularizacao",
+    "E-mail ao [Campus/Fornecedor] sobre regularizacao da OB [Numero]"
+  ]
+};
+var modelos = JSON.parse(localStorage.getItem('cofin_modelos')||'null') || defaultModelos;
+function saveModelos(){localStorage.setItem('cofin_modelos',JSON.stringify(modelos));}
 
 var iaSugsCache = [];
 
@@ -1015,6 +1167,96 @@ function onTipoChangeComIA(){
   if(registros.length >= 2) iaAtualizarSugestoes();
 }
 
+
+// ── Modelos e Autocomplete ─────────────────────────────────────
+function modelosAbrir(){
+  var tipo = document.getElementById('tipo').value;
+  var dd = document.getElementById('modelos-dd');
+  if(!tipo){showToast('Selecione o tipo de demanda primeiro');return;}
+  var lista = modelos[tipo] || [];
+  if(!lista.length){showToast('Nenhum modelo cadastrado para este tipo');return;}
+  dd.classList.toggle('open');
+  if(!dd.classList.contains('open')) return;
+  var html = '<div class="modelos-header"><span>Modelos prontos — clique para usar</span>';
+  html += '<button class="btn-sm" onclick="modelosFechar()" style="font-size:10px">Fechar</button></div>';
+  lista.forEach(function(m,i){
+    var destaque = m.replace(/\[([^\]]+)\]/g,'<span class="modelo-destaque">[$1]</span>');
+    html += '<div class="modelo-item" onclick="modeloAplicar('+i+')">';
+    html += '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3949ab" stroke-width="2" style="flex-shrink:0;margin-top:2px"><polyline points="20 6 9 17 4 12"/></svg>';
+    html += '<span class="modelo-item-txt">'+destaque+'</span></div>';
+  });
+  dd.innerHTML = html;
+}
+
+function modelosFechar(){
+  document.getElementById('modelos-dd').classList.remove('open');
+}
+
+function modeloAplicar(i){
+  var tipo = document.getElementById('tipo').value;
+  var lista = modelos[tipo] || [];
+  var texto = lista[i] || '';
+  var comp = document.getElementById('complemento');
+  var atual = comp.value.trim();
+  comp.value = atual ? atual + '; ' + texto : texto;
+  document.getElementById('comp-field').style.display='block';
+  modelosFechar();
+  showToast('Modelo aplicado! Substitua os [campos] pelo valor real.');
+  setTimeout(function(){
+    var pos = comp.value.indexOf('[');
+    if(pos>=0){comp.focus();comp.setSelectionRange(pos,comp.value.indexOf(']',pos)+1);}
+  },100);
+}
+
+// Autocomplete para detalhes e complemento
+var acCache = {};
+
+function acBuild(){
+  var det = {}, comp2 = {};
+  registros.forEach(function(r){
+    if(r.detalhes&&r.detalhes.trim()) det[r.detalhes.trim()] = (det[r.detalhes.trim()]||0)+1;
+    if(r.atividades){
+      r.atividades.split(';').forEach(function(a){
+        var t=a.trim();if(t) comp2[t]=(comp2[t]||0)+1;
+      });
+    }
+  });
+  acCache.detalhes = Object.keys(det).sort(function(a,b){return det[b]-det[a];});
+  acCache.complemento = Object.keys(comp2).sort(function(a,b){return comp2[b]-comp2[a];});
+}
+
+function acShow(fieldId, listId){
+  var input = document.getElementById(fieldId);
+  var list = document.getElementById(listId);
+  var val = input.value.toLowerCase().trim();
+  var lastPart = val.split(';').pop().trim();
+  if(!lastPart || lastPart.length < 2){list.classList.remove('open');return;}
+  var src = acCache[fieldId] || [];
+  var matches = src.filter(function(s){return s.toLowerCase().indexOf(lastPart)>=0;}).slice(0,6);
+  if(!matches.length){list.classList.remove('open');return;}
+  list.innerHTML = matches.map(function(m){
+    var hl = m.replace(new RegExp('('+lastPart.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi'),'<em>$1</em>');
+    return '<div class="autocomplete-item" data-fid="'+fieldId+'" data-lid="'+listId+'" onmousedown="acApplyEl(event,this)">'+hl+'</div>';
+  }).join('');
+  list.classList.add('open');
+}
+
+function acApplyEl(e, el){
+  e.preventDefault();
+  var fieldId = el.getAttribute('data-fid');
+  var listId = el.getAttribute('data-lid');
+  var val = input.value;
+  var parts = val.split(';');
+  parts[parts.length-1] = ' ' + el.textContent;
+  input.value = parts.join(';').replace(/^\s*;\s*/,'').trim();
+  document.getElementById(listId).classList.remove('open');
+  input.focus();
+}
+
+function acHide(listId){
+  setTimeout(function(){document.getElementById(listId).classList.remove('open');},150);
+}
+
 function pitCalc(){
   pitRender();
 }
@@ -1037,7 +1279,7 @@ function pitRender(){
     }
     var pct=total>0?Math.min(100,Math.round((calc/total)*100)):0;
     var cor=e.tipo==='fixa'?'#1a5296':'#2e7d32';
-    html+='<div class="pit-row" id="pit-row-'+i+'">';
+    html+='<div class="pit-row" id="pit-row-'+i+'" data-drag-idx="'+i+'" data-drag-key="pit">';
     html+='<span class="drag-handle" title="Arrastar">&#8597;</span>';
     html+='<div class="pit-ent">'+e.titulo+'</div>';
     html+='<button class="pit-btn '+e.tipo+'" onclick="pitToggle('+i+')">'+(e.tipo==='fixa'?'Fixa':'Variavel')+'</button>';
@@ -1055,7 +1297,7 @@ function pitRender(){
   var pitList=document.getElementById('pit-lista');
   pitEntregas.forEach(function(e,i){
     var el=document.getElementById('pit-row-'+i);
-    if(el) makeDraggable(el,pitList,'pit',-1);
+    if(el) makeDraggable(el,'pit',-1);
   });
 
   if(total>0){
