@@ -485,16 +485,7 @@ textarea{resize:vertical;min-height:64px}
         </div>
       </div>
 
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
-        <button class="triagem-btn" style="flex:1;margin-bottom:0" onclick="registrarTriagemDia()">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><polyline points="9 12 11 14 15 10"/></svg>
-          Registrar triagem do dia
-        </button>
-        <div style="display:flex;align-items:center;gap:6px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:8px;padding:6px 10px">
-          <span style="font-size:12px;color:#065f46;white-space:nowrap">Processos:</span>
-          <input type="number" id="triagem-qtd" min="1" max="999" value="1" style="width:52px;padding:4px 6px;font-size:13px;border:1px solid #bbf7d0;border-radius:6px;background:#fff;text-align:center">
-        </div>
-      </div>
+      
       <div id="lote-section" style="display:none" class="card" style="padding:14px;margin-bottom:8px">
         <div style="font-size:13px;font-weight:600;color:#1F3864;margin-bottom:10px">Processos em lote — mesmo tipo e atividades</div>
         <div id="lote-rows"></div>
@@ -723,11 +714,11 @@ var defaultPit = [
 
 var CONFIG_VERSION = '2026-03-19e';
 var storedVersion = localStorage.getItem('cofin_config_version');
-var config = (storedVersion === CONFIG_VERSION)
-  ? (JSON.parse(localStorage.getItem(CONFIG_KEY)||'null') || defaultConfig)
-  : defaultConfig;
-if(storedVersion !== CONFIG_VERSION){
-  localStorage.setItem(CONFIG_KEY, JSON.stringify(defaultConfig));
+var storedConfig = JSON.parse(localStorage.getItem(CONFIG_KEY)||'null');
+// Never reset user's custom config when version changes
+// Just use what's stored, or defaultConfig if nothing stored
+var config = storedConfig || defaultConfig;
+if(!storedVersion){
   localStorage.setItem('cofin_config_version', CONFIG_VERSION);
 }
 var registros = JSON.parse(localStorage.getItem(REG_KEY)||'[]');
@@ -819,9 +810,7 @@ function carregarConfigSheets(){
         setSyncStatus('ok','Sheets conectado');
       }
     } else {
-      // No config on Sheets yet - save current default to Sheets
-      config = defaultConfig;
-      localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+      // No config on Sheets yet - push current local config to Sheets
       sincronizarConfig();
       setSyncStatus('ok','Sheets conectado');
       var lo=document.getElementById('loading-overlay');if(lo)lo.style.display='none';
