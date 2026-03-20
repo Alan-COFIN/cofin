@@ -443,7 +443,10 @@ textarea{resize:vertical;min-height:64px}
       <div class="field"><label>Tipo de demanda principal</label><select id="tipo" onchange="onTipoChangeComIA()"><option value="">- Selecione o tipo -</option></select></div>
 
       <div id="ativs-field" style="display:none" class="field">
-        <label>Atividades realizadas</label>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+          <label style="margin-bottom:0">Atividades realizadas</label>
+          <span id="atv-counter" style="font-size:10px;color:#aaa;font-weight:700"></span>
+        </div>
         <p class="hint" style="margin-bottom:8px">As marcadas sao o padrao. Desmarque o que nao fez ou marque o que fez a mais.</p>
         <div class="atividades-box" id="ativs-list"></div>
         <div id="sistemas-box" class="sistemas-box" style="display:none"></div>
@@ -683,6 +686,10 @@ textarea{resize:vertical;min-height:64px}
 </div>
 
 <div class="toast" id="toast"></div>
+<div id="loading-overlay" style="display:none;position:fixed;inset:0;background:rgba(255,255,255,0.9);z-index:200;align-items:center;justify-content:center;flex-direction:column;gap:12px">
+  <svg width="32" height="32" viewBox="0 0 512 512" fill="none"><rect width="512" height="512" rx="96" fill="#0B6E4F"/><polyline points="128,266 218,356 388,166" stroke="#fff" stroke-width="72" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  <div style="font-size:14px;font-weight:700;color:#0B6E4F;font-family:system-ui,sans-serif">Carregando configurações...</div>
+</div>
 
 <script>
 var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbycW1441DansTe1a-S_nRGHuwYhVDcKh-C8mxMWRoV80SFeLsy1jvF052XuTrJjq0VL/exec';
@@ -787,7 +794,9 @@ function enviarSheets(reg){
 }
 
 function carregarConfigSheets(){
-  setSyncStatus('ing','Carregando configuracoes...');
+  setSyncStatus('ing','Carregando...');
+  var loadingEl = document.getElementById('loading-overlay');
+  if(loadingEl) loadingEl.style.display='flex';
   fetch(SHEETS_URL,{
     method:'POST',
     body:JSON.stringify({action:'load_config'})
@@ -804,6 +813,7 @@ function carregarConfigSheets(){
           popularSelect();
           renderConfig();
           setSyncStatus('ok','Config sincronizada');
+      var lo=document.getElementById('loading-overlay');if(lo)lo.style.display='none';
         }
       }catch(e){
         setSyncStatus('ok','Sheets conectado');
@@ -814,16 +824,27 @@ function carregarConfigSheets(){
       localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
       sincronizarConfig();
       setSyncStatus('ok','Sheets conectado');
+      var lo=document.getElementById('loading-overlay');if(lo)lo.style.display='none';
     }
   })
   .catch(function(){
     setSyncStatus('err','Sem conexao');
+    var lo=document.getElementById('loading-overlay');if(lo)lo.style.display='none';
   });
 }
 
 function init(){
   acBuild();
   document.getElementById('data').value = today();
+  // Ctrl+Enter to save
+  document.addEventListener('keydown', function(e){
+    if((e.ctrlKey||e.metaKey) && e.key==='Enter'){
+      var activeTab = document.querySelector('.tab.active');
+      if(activeTab && activeTab.textContent.trim()==='Registrar'){
+        salvarRegistro();
+      }
+    }
+  });
   var now=new Date();
   var relMes=document.getElementById('rel-mes');
   if(relMes) relMes.value=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
@@ -889,6 +910,11 @@ function onTipoChange(){
 }
 
 function atualizarSistemas(){
+  // Update activity counter
+  var total = document.querySelectorAll('#ativs-list .atv-item').length;
+  var sel = document.querySelectorAll('#ativs-list input[type=checkbox]:checked').length;
+  var counter = document.getElementById('atv-counter');
+  if(counter && total > 0) counter.textContent = sel + ' de ' + total + ' selecionadas';
   var v=document.getElementById('tipo').value;
   var cf=config.find(function(c){return c.tipo===v;});
   if(!cf) return;
@@ -986,6 +1012,7 @@ function limparFiltros(){
   document.getElementById('f-tipo').value='';
   document.getElementById('f-campus').value='';
   document.querySelectorAll('#f-campus-tags .campus-tag.sel').forEach(function(t){t.classList.remove('sel');});
+  localStorage.setItem('hist_pag','0');
   renderHistorico();
 }
 
@@ -995,6 +1022,7 @@ function toggleFiltroC(el, sigla){
   var vals = [];
   sels.forEach(function(s){vals.push(s.textContent.trim());});
   document.getElementById('f-campus').value = vals.join('; ');
+  localStorage.setItem('hist_pag','0');
   renderHistorico();
 }
 
@@ -1053,8 +1081,13 @@ function renderHistorico(){
   if(!filtrados.length){
     el.innerHTML='<div class="empty">'+(registros.length?'Nenhum registro encontrado com esses filtros.':'Nenhum registro ainda.')+'</div>';return;
   }
+  var pagSize = 20;
+  var pagAtual = parseInt(localStorage.getItem('hist_pag')||'0');
+  var pagStart = pagAtual * pagSize;
+  var pagEnd = pagStart + pagSize;
+  var totalFilt = filtrados.length;
   var html='';
-  filtrados.forEach(function(r,i){
+  filtrados.slice(pagStart, pagEnd).forEach(function(r,i){
     var realIdx=registros.indexOf(r);
     i=realIdx;
     var df=r.data?r.data.split('-').reverse().join('/'):'';
@@ -1089,6 +1122,19 @@ function renderHistorico(){
     html+='<button class="btn-sm d" onclick="excluirReg('+i+')">Excluir</button>';
     html+='</div></div>';
   });
+  // Add pagination controls
+  if(totalFilt > pagSize){
+    var totalPags = Math.ceil(totalFilt/pagSize);
+    html += '<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:12px 0;font-size:13px">';
+    if(pagAtual > 0){
+      html += '<button class="btn-sm" onclick="mudarPag('+(pagAtual-1)+')">← Anterior</button>';
+    }
+    html += '<span style="color:var(--color-text-secondary,#888);font-weight:600">'+(pagAtual+1)+' de '+totalPags+' ('+totalFilt+' registros)</span>';
+    if(pagAtual < totalPags-1){
+      html += '<button class="btn-sm" onclick="mudarPag('+(pagAtual+1)+')">Próxima →</button>';
+    }
+    html += '</div>';
+  }
   el.innerHTML=html;
   registros.forEach(function(r,i){
     var card=document.getElementById('reg-card-'+i);
@@ -1371,115 +1417,7 @@ function moverItem(key, ci, idx, dir){
 function makeDraggable(el, key, ci){}
 
 
-var defaultModelos = {
-  "Atendimento aos campi e setores quanto a orientacoes tecnicas": [
-    "Orientacao tecnica sobre inclusao de inscricao generica ao [Campus/Setor]",
-    "Orientacao tecnica sobre inclusao de VPD ao [Campus/Setor]",
-    "Orientacao tecnica sobre inclusao de empenho ao [Campus/Setor]",
-    "Orientacao tecnica sobre inclusao de contrato ao [Campus/Setor]",
-    "Orientacao tecnica sobre inclusao de favorecido ao [Campus/Setor]",
-    "Comunicacao sobre alteracoes no processo [Numero] ao [Campus/Setor]",
-    "Orientacao sobre cadastro do documento fiscal no Compranet ao [Campus/Setor]",
-    "Orientacao sobre instrumento de cobranca ao [Campus/Setor]",
-    "Orientacao sobre correcao de NP ao [Campus/Setor]",
-    "Orientacao sobre correcao de RP ao [Campus/Setor]",
-    "Orientacao sobre deducao federal ao [Campus/Setor]",
-    "Orientacao sobre retencao de INSS ao [Campus/Setor]",
-    "Resposta a consulta sobre pagamento ao [Campus/Setor]"
-  ],
-  "Atendimento aos fornecedores quanto aos pagamentos": [
-    "Informado ao fornecedor [Nome] sobre previsao de pagamento",
-    "Esclarecimento ao fornecedor [Nome] sobre retencao tributaria",
-    "Solicitacao de nota fiscal ou documentacao faltante ao fornecedor [Nome]",
-    "Verificacao de dados bancarios do fornecedor [Nome]",
-    "Comunicacao ao fornecedor [Nome] sobre pagamento realizado - OB [Numero]"
-  ],
-  "Atendimento as determinacoes e demandas de orgaos externos": [
-    "Elaboracao de resposta a demanda do [Orgao] referente ao processo [Numero]",
-    "Envio de documentacao solicitada pelo [Orgao]",
-    "Atendimento a diligencia do [Orgao] sobre [Assunto]"
-  ],
-  "Atividades referentes a Liquidacao de Despesas": [
-    "Liquidacao da NF/FAT n. [Numero] do fornecedor [Nome] - processo [SEI]",
-    "Liquidacao de bolsa referente a [Programa] - processo [SEI]",
-    "Liquidacao de bolsa professor externo - processo [SEI]",
-    "Liquidacao PCDP n. [Numero] - processo [SEI]",
-    "Despacho de liquidacao encaminhado para COERG - SEI n. [Numero]",
-    "Conferencia e liquidacao do PASEP - processo [SEI]"
-  ],
-  "Atividades referentes a liquidacao e pagamento da folha de pessoal": [
-    "Liquidacao da folha de pagamento referente a competencia [Mes/Ano]",
-    "Pagamento da folha de pessoal competencia [Mes/Ano] - OB [Numero]",
-    "Solicitacao de recurso financeiro para folha e GEAP competencia [Mes/Ano]",
-    "Liquidacao e pagamento do PASEP competencia [Mes/Ano]"
-  ],
-  "Atividades referentes ao Pagamento de Despesas": [
-    "Pagamento da NF/FAT n. [Numero] - fornecedor [Nome] - [NP/RP]",
-    "Pagamento de bolsas referente a [Programa] - [RP]",
-    "Pagamento PCDP n. [Numero] - processo [SEI]",
-    "Pagamento realizado - OB [Numero] - processo [SEI]",
-    "Consulta de recurso TED/Emenda para pagamento do processo [SEI]",
-    "Regularizacao de OB cancelada - processo [SEI]"
-  ],
-  "Auxilio a Diretoria de Contabilidade e Financas e Pro-Reitoria de Administracao": [
-    "Elaboracao de despacho sobre [Assunto] a pedido da DIRCF",
-    "Emissao de relatorio gerencial referente a [Assunto]",
-    "Preenchimento de planilha de controle de [Assunto]",
-    "Registro de demanda no Trello - [Assunto]",
-    "Atendimento a demanda da PROAD referente a [Assunto]"
-  ],
-  "Controle e acompanhamento recursos especificos (TED/Emenda)": [
-    "Preenchimento da planilha de controle TED [Numero]/[Ano]",
-    "Preenchimento da planilha de controle Emenda [Numero]/[Ano]",
-    "Consulta de saldo disponivel para TED [Numero] no Tesouro Gerencial",
-    "Verificacao de liberacao de recurso TED [Numero] no SIAFI",
-    "Preenchimento do SIMEC referente a TED [Numero]"
-  ],
-  "Cumprimento de obrigacoes tributarias (SEFIP, FGTS, DARF, ISS, EFD-Reinf, DCTFweb)": [
-    "Emissao e pagamento de DARF referente a [Tributo] competencia [Mes/Ano]",
-    "Fechamento e transmissao do EFD-Reinf competencia [Mes/Ano]",
-    "Transmissao da DCTFWeb competencia [Mes/Ano]",
-    "Lancamento no SEFIP/GFIP competencia [Mes/Ano]",
-    "Geracao e pagamento de guia de ISS - NF [Numero]",
-    "Recolhimento de GPS competencia [Mes/Ano]"
-  ],
-  "Elaboracao e revisao de fluxos de processos e manuais": [
-    "Elaboracao do fluxo de processo referente a [Atividade]",
-    "Revisao do manual de [Atividade]",
-    "Atualizacao do procedimento de [Atividade]",
-    "Despacho solicitando aprovacao e divulgacao do [Documento]"
-  ],
-  "Envio de demandas (liquidacao e pagamento) para os campi": [
-    "Despacho autorizando pagamento ao [Campus] - processo [SEI]",
-    "Envio de demanda de liquidacao ao [Campus] - processo [SEI]",
-    "Preenchimento da planilha de acompanhamento - processo [SEI]",
-    "Comunicacao ao [Campus] sobre pendencia no processo [SEI]"
-  ],
-  "Envio de IRRF aos fornecedores e colaboradores externos": [
-    "Envio de comprovante de IRRF ao fornecedor [Nome] - competencia [Ano]",
-    "Envio de declaracao de rendimentos ao colaborador [Nome] - [Ano]",
-    "Envio de informe de rendimentos ao [Nome] referente a [Ano]"
-  ],
-  "Gestao de Recursos Financeiros": [
-    "Emissao de Nota de Lancamento (NL) referente a [Assunto]",
-    "Emissao de Programacao Financeira (PF) referente a [Assunto]",
-    "Emissao de Nota de Sistema (NS) referente a [Assunto]",
-    "Consulta e acompanhamento de saldo financeiro - [Periodo]",
-    "Envio de Comunica no SIAFI referente a [Assunto]"
-  ],
-  "Participacao em atividades": [
-    "Participacao em reuniao sobre [Assunto] - [Data]",
-    "Participacao em treinamento de [Tema] promovido por [Orgao]",
-    "Participacao em comissao de [Assunto]",
-    "Elaboracao de ata da reuniao de [Assunto]"
-  ],
-  "Regularizacao de pagamento (OBs canceladas)": [
-    "Regularizacao da OB [Numero] cancelada - processo [SEI]",
-    "Consulta e levantamento de OBs canceladas - competencia [Mes/Ano]",
-    "Emissao de lista de credores para regularizacao",
-    "E-mail ao [Campus/Fornecedor] sobre regularizacao da OB [Numero]"
-  ]
-};
+var defaultModelos = {"Atendimento aos campi e setores quanto a orientacoes tecnicas": ["Orientacao tecnica sobre inclusao de inscricao generica ao [Campus/Setor]", "Orientacao tecnica sobre inclusao de VPD ao [Campus/Setor]", "Orientacao tecnica sobre inclusao de empenho ao [Campus/Setor]", "Orientacao tecnica sobre inclusao de contrato ao [Campus/Setor]", "Orientacao tecnica sobre inclusao de favorecido ao [Campus/Setor]", "Comunicacao sobre alteracoes no processo [Numero] ao [Campus/Setor]", "Orientacao sobre cadastro do documento fiscal no Compranet ao [Campus/Setor]", "Orientacao sobre instrumento de cobranca ao [Campus/Setor]", "Orientacao sobre correcao de NP ao [Campus/Setor]", "Orientacao sobre correcao de RP ao [Campus/Setor]", "Orientacao sobre deducao federal ao [Campus/Setor]", "Orientacao sobre retencao de INSS ao [Campus/Setor]", "Resposta a consulta sobre pagamento ao [Campus/Setor]"], "Atendimento aos fornecedores quanto aos pagamentos": ["Informado ao fornecedor [Nome] sobre previsao de pagamento", "Esclarecimento ao fornecedor [Nome] sobre retencao tributaria", "Solicitacao de nota fiscal ou documentacao faltante ao fornecedor [Nome]", "Verificacao de dados bancarios do fornecedor [Nome]", "Comunicacao ao fornecedor [Nome] sobre pagamento realizado - OB [Numero]"], "Atendimento as determinacoes e demandas de orgaos externos": ["Elaboracao de resposta a demanda do [Orgao] referente ao processo [Numero]", "Envio de documentacao solicitada pelo [Orgao]", "Atendimento a diligencia do [Orgao] sobre [Assunto]"], "Atividades referentes a Liquidacao de Despesas": ["Liquidacao da NF/FAT n. [Numero] do fornecedor [Nome] - processo [SEI]", "Liquidacao de bolsa referente a [Programa] - processo [SEI]", "Liquidacao de bolsa professor externo - processo [SEI]", "Liquidacao PCDP n. [Numero] - processo [SEI]", "Despacho de liquidacao encaminhado para COERG - SEI n. [Numero]", "Conferencia e liquidacao do PASEP - processo [SEI]"], "Atividades referentes a liquidacao e pagamento da folha de pessoal": ["Liquidacao da folha de pagamento referente a competencia [Mes/Ano]", "Pagamento da folha de pessoal competencia [Mes/Ano] - OB [Numero]", "Solicitacao de recurso financeiro para folha e GEAP competencia [Mes/Ano]", "Liquidacao e pagamento do PASEP competencia [Mes/Ano]"], "Atividades referentes ao Pagamento de Despesas": ["Pagamento da NF/FAT n. [Numero] - fornecedor [Nome] - [NP/RP]", "Pagamento de bolsas referente a [Programa] - [RP]", "Pagamento PCDP n. [Numero] - processo [SEI]", "Pagamento realizado - OB [Numero] - processo [SEI]", "Consulta de recurso TED/Emenda para pagamento do processo [SEI]", "Regularizacao de OB cancelada - processo [SEI]"], "Auxilio a Diretoria de Contabilidade e Financas e Pro-Reitoria de Administracao": ["Elaboracao de despacho sobre [Assunto] a pedido da DIRCF", "Emissao de relatorio gerencial referente a [Assunto]", "Preenchimento de planilha de controle de [Assunto]", "Registro de demanda no Trello - [Assunto]", "Atendimento a demanda da PROAD referente a [Assunto]"], "Controle e acompanhamento recursos especificos (TED/Emenda)": ["Preenchimento da planilha de controle TED [Numero]/[Ano]", "Preenchimento da planilha de controle Emenda [Numero]/[Ano]", "Consulta de saldo disponivel para TED [Numero] no Tesouro Gerencial", "Verificacao de liberacao de recurso TED [Numero] no SIAFI", "Preenchimento do SIMEC referente a TED [Numero]"], "Cumprimento de obrigacoes tributarias (SEFIP, FGTS, DARF, ISS, EFD-Reinf, DCTFweb)": ["Emissao e pagamento de DARF referente a [Tributo] competencia [Mes/Ano]", "Fechamento e transmissao do EFD-Reinf competencia [Mes/Ano]", "Transmissao da DCTFWeb competencia [Mes/Ano]", "Lancamento no SEFIP/GFIP competencia [Mes/Ano]", "Geracao e pagamento de guia de ISS - NF [Numero]", "Recolhimento de GPS competencia [Mes/Ano]"], "Elaboracao e revisao de fluxos de processos e manuais": ["Elaboracao do fluxo de processo referente a [Atividade]", "Revisao do manual de [Atividade]", "Atualizacao do procedimento de [Atividade]", "Despacho solicitando aprovacao e divulgacao do [Documento]"], "Envio de demandas (liquidacao e pagamento) para os campi": ["Despacho autorizando pagamento ao [Campus] - processo [SEI]", "Envio de demanda de liquidacao ao [Campus] - processo [SEI]", "Preenchimento da planilha de acompanhamento - processo [SEI]", "Comunicacao ao [Campus] sobre pendencia no processo [SEI]"], "Envio de IRRF aos fornecedores e colaboradores externos": ["Envio de comprovante de IRRF ao fornecedor [Nome] - competencia [Ano]", "Envio de declaracao de rendimentos ao colaborador [Nome] - [Ano]", "Envio de informe de rendimentos ao [Nome] referente a [Ano]"], "Gestao de Recursos Financeiros": ["Emissao de Nota de Lancamento (NL) referente a [Assunto]", "Emissao de Programacao Financeira (PF) referente a [Assunto]", "Emissao de Nota de Sistema (NS) referente a [Assunto]", "Consulta e acompanhamento de saldo financeiro - [Periodo]", "Envio de Comunica no SIAFI referente a [Assunto]"], "Participacao em atividades": ["Participacao em reuniao sobre [Assunto] - [Data]", "Participacao em treinamento de [Tema] promovido por [Orgao]", "Participacao em comissao de [Assunto]", "Elaboracao de ata da reuniao de [Assunto]"], "Regularizacao de pagamento (OBs canceladas)": ["Regularizacao da OB [Numero] cancelada - processo [SEI]", "Consulta e levantamento de OBs canceladas - competencia [Mes/Ano]", "Emissao de lista de credores para regularizacao", "E-mail ao [Campus/Fornecedor] sobre regularizacao da OB [Numero]"], "Liquidacao (Reitoria)": ["Liquidação da NF/FAT n. [Numero] do fornecedor [Nome] - processo [SEI]", "Consulta SICAF - fornecedor [Nome] - processo [SEI]", "Despacho de liquidação encaminhado para COERG - SEI n. [Numero]", "Sem saldo de empenho - consultado coordenadora de orçamento", "Despacho devolvendo processo para indicação de empenho - processo [SEI]"], "Liquidacao de Bolsas (Reitoria)": ["Liquidação de bolsas referente a [Programa] - processo [SEI]", "Verificação de beneficiários e lista de credores - [Programa]", "Geração de lista de credores - [Programa] - processo [SEI]", "Sem saldo de empenho - consultado coordenadora de orçamento"], "Pagamento (Reitoria)": ["Pagamento da NF/FAT n. [Numero] - fornecedor [Nome] - [NP/RP]", "Pagamento realizado - OB [Numero] - processo [SEI]", "Consulta de disponibilidade financeira - processo [SEI]", "Pendência de lançamento REINF comunicada ao responsável via WhatsApp"], "Pagamento de Bolsas (Reitoria)": ["Pagamento de bolsas referente a [Programa] - [RP]", "Pagamento realizado - OB [Numero] - [Programa]", "Confirmação de beneficiários e fechamento de LCs - [Programa]", "Informe de pagamento enviado ao demandante por e-mail"], "Autorização de Pagamento (Campus)": ["Despacho autorizando pagamento ao [Campus] - processo [SEI]", "Verificação de saldo e orçamento - processo [SEI]", "Conferência do despacho decisório - processo [SEI]"], "Conferência do Retorno (Campus)": ["Conferência dos comprovantes recebidos do [Campus] - processo [SEI]", "SICAF verificado - fornecedor [Nome] - processo [SEI]", "Pendência de lançamento REINF comunicada ao responsável via WhatsApp", "Pendência identificada - solicitado correção ao [Campus]"], "Triagem e Distribuição de Processos": ["Triagem de processos recebidos no SEI - [N] processos analisados", "Processo [SEI] classificado como liquidação - encaminhado à equipe", "Processo [SEI] classificado como pagamento - encaminhado à equipe", "Processo [SEI] devolvido com orientações de correção"], "Liquidação e Pagamento PCDP": ["Liquidação da PCDP n. [Numero] - processo [SEI]", "Pagamento da PCDP n. [Numero] - processo [SEI]", "Verificação de PCDPs pendentes - nenhuma pendência encontrada", "PCDP n. [Numero] liquidada e paga - OB [Numero]"], "Liquidação da Folha de Pessoal": ["Liquidação da folha de pagamento competência [Mes/Ano]", "Solicitação de recurso financeiro da folha e GEAP competência [Mes/Ano]", "Preenchimento da planilha pré-lançamento SIAFI competência [Mes/Ano]"], "Pagamento da Folha de Pessoal": ["Pagamento da folha de pessoal competência [Mes/Ano] - OB [Numero]", "Consulta de liberação do recurso financeiro - competência [Mes/Ano]", "Despacho das OBs encaminhado para COERG - competência [Mes/Ano]"]};
 var modelos = JSON.parse(localStorage.getItem('cofin_modelos')||'null') || defaultModelos;
 function saveModelos(){localStorage.setItem('cofin_modelos',JSON.stringify(modelos));}
 
@@ -1773,96 +1711,7 @@ function verificarAlertas(){
 
 
 // ── Mapa de sistemas por atividade ───────────────────────────
-var sistemasAtividade = {
-  "Consulta do SICAF": ["SICAF"],
-  "Consulta do Simples Nacional": ["Portal Simples Nacional"],
-  "Conferência do Instrumento de Cobrança": ["Compranet; SEI"],
-  "Conferência de Despacho (Liquidação)": ["SEI"],
-  "Apropriação da NF/FAT": ["Compranet; SIAFI"],
-  "Lancamento de encargo no drive REINF": ["Planilha REINF; Drive"],
-  "Execução do DARF contábil INSS": ["SIAFI"],
-  "Verificação Beneficiários / Lista de Credores": ["SIAFI; Planilha"],
-  "Geracao de Lista de Credores": ["SIAFI"],
-  "Liquidacao SIAFI": ["SIAFI"],
-  "Consulta de IRRF incidente": ["SIAFI; Receita Federal"],
-  "Encaminhamento para COERG": ["SEI"],
-  "Conferência Despacho Decisório": ["SEI"],
-  "Conferencia da liquidacao": ["SIAFI"],
-  "Consulta do SICAF": ["SICAF"],
-  "Consulta de recurso TED/Emenda antes do pagamento": ["SIAFI; Tesouro Gerencial"],
-  "Geracao Guia do ISS": ["Portal ISS; SIAFI"],
-  "Criacao da Lista de Fatura do ISS": ["Planilha; SIAFI"],
-  "Pagamento da liquidacao no SIAFI": ["SIAFI"],
-  "Lançamento REINF (Pós-Pagamento)": ["Planilha REINF; Drive"],
-  "Fechamento LCs": ["SIAFI"],
-  "Despacho OB p/ COERG": ["SEI; SIAFI"],
-  "Lançamento Dedução Federal REINF": ["Planilha REINF"],
-  "Confirmação Beneficiários / LCs": ["SIAFI; Planilha"],
-  "Informe do PG ao demandante (e-mail)": ["E-mail"],
-  "Conferência e Pagamento PCDPs (SIAFI)": ["SIAFI"],
-  "Orientacao tecnica por e-mail": ["E-mail"],
-  "Orientacao tecnica por WhatsApp": ["WhatsApp"],
-  "Solicitacao de correcao de NP/RP ao campus": ["E-mail; WhatsApp; SEI"],
-  "Solicitacao de alteracao ou inclusao de deducao federal/INSS": ["E-mail; SEI"],
-  "Atendimento presencial ou por videoconferencia": ["Teams; Presencial"],
-  "Atendimento sobre pagamento pendente": ["E-mail; WhatsApp"],
-  "Esclarecimento sobre retencoes tributarias": ["E-mail; WhatsApp"],
-  "Informe de previsao de pagamento": ["E-mail"],
-  "Solicitacao de nota fiscal ou documentacao faltante": ["E-mail"],
-  "Verificacao de dados bancarios do fornecedor": ["E-mail; SIAFI"],
-  "Elaboracao de oficio ou despacho de resposta": ["SEI"],
-  "Levantamento de informacoes solicitadas": ["SIAFI; SEI; Tesouro Gerencial"],
-  "Envio de documentacao ao orgao externo": ["SEI; E-mail"],
-  "Preenchimento da planilha pre-lancamento SIAFI": ["SIAFI; Planilha"],
-  "Solicitacao de recurso financeiro da folha no SIAFI": ["SIAFI"],
-  "Consulta da liberacao do recurso financeiro": ["SIAFI"],
-  "Anexo dos comprovantes de pagamento da folha": ["SEI"],
-  "Despacho das OBs para COERG": ["SEI; SIAFI"],
-  "Consulta no Serpro": ["Serpro"],
-  "Liquidacao e pagamento do PASEP": ["SIAFI"],
-  "Elaboracao de despacho": ["SEI"],
-  "Envio de e-mail institucional": ["E-mail"],
-  "Emissao de relatorio gerencial": ["Tesouro Gerencial; SIAFI"],
-  "Preenchimento de planilha de controle": ["Planilha"],
-  "Registro no Trello": ["Trello"],
-  "Preenchimento de planilha de controle TED/Emenda": ["Planilha; SIAFI"],
-  "Consulta de saldo disponivel no Tesouro Gerencial": ["Tesouro Gerencial"],
-  "Verificacao de liberacao de recurso no SIAFI": ["SIAFI"],
-  "Preenchimento do sistema SIMEC": ["SIMEC"],
-  "Preenchimento do sistema FNDE": ["FNDE"],
-  "Emissao de DARF": ["SIAFI; Receita Federal"],
-  "Lancamento no SEFIP/GFIP": ["SEFIP"],
-  "Preenchimento e fechamento do EFD-Reinf": ["eSocial; EFD-Reinf"],
-  "Transmissao da DCTFWeb": ["DCTFWeb"],
-  "Recolhimento de GPS": ["SIAFI; Receita Federal"],
-  "Envio de IRRF ao fornecedor ou colaborador externo": ["E-mail"],
-  "Geracao e pagamento de guia de ISS": ["Portal ISS; SIAFI"],
-  "Conferencia do despacho decisorio": ["SEI"],
-  "Preenchimento da planilha de acompanhamento": ["Planilha"],
-  "Despacho autorizando pagamento para o campus": ["SEI"],
-  "Conferência dos comprovantes de pagamento recebidos do campus": ["SEI; Planilha"],
-  "Verificacao do SICAF valido": ["SICAF"],
-  "Conferencia dos comprovantes de liquido e retencoes": ["SIAFI; Planilha"],
-  "Encaminhamento para COERG apos conferencia": ["SEI"],
-  "Emissao do comprovante de IRRF": ["SIAFI; Planilha"],
-  "Envio por e-mail ao fornecedor ou colaborador": ["E-mail"],
-  "Emissao de Nota de Lancamento (NL)": ["SIAFI"],
-  "Emissao de Programacao Financeira (PF)": ["SIAFI"],
-  "Emissao de Nota de Sistema (NS)": ["SIAFI"],
-  "Consulta e acompanhamento de saldo financeiro": ["SIAFI; Tesouro Gerencial"],
-  "Envio de Comunica no SIAFI": ["SIAFI"],
-  "Emissao de relatorio gerencial no Tesouro Gerencial": ["Tesouro Gerencial"],
-  "Participacao em reuniao": ["Teams; Presencial"],
-  "Participacao em treinamento ou curso": ["Teams; Plataforma EAD"],
-  "Participacao em comissao ou grupo de trabalho": ["Presencial; SEI"],
-  "Elaboracao de ata ou lista de presenca": ["SEI; Planilha"],
-  "Consultas das OBs canceladas no SIAFI": ["SIAFI"],
-  "Preenchimento de planilha de controle das OBs": ["Planilha"],
-  "Emissao de lista de credores": ["SIAFI"],
-  "E-mail de consulta ao campus ou fornecedor": ["E-mail"],
-  "Regularizacao da OB no SIAFI": ["SIAFI"],
-  "Despacho de regularizacao no SEI": ["SEI"]
-};
+var sistemasAtividade = {"Consulta do SICAF": ["SICAF"], "Consulta do Simples Nacional": ["Portal Simples Nacional"], "Conferência do Instrumento de Cobrança": ["Compranet; SEI"], "Conferência de Despacho (Liquidação)": ["SEI"], "Apropriação da NF/FAT": ["Compranet; SIAFI"], "Lancamento de encargo no drive REINF": ["Planilha REINF; Drive"], "Execução do DARF contábil INSS": ["SIAFI"], "Verificação Beneficiários / Lista de Credores": ["SIAFI; Planilha"], "Geracao de Lista de Credores": ["SIAFI"], "Liquidacao SIAFI": ["SIAFI"], "Consulta de IRRF incidente": ["SIAFI; Receita Federal"], "Encaminhamento para COERG": ["SEI"], "Conferência Despacho Decisório": ["SEI"], "Conferencia da liquidacao": ["SIAFI"], "Consulta de recurso TED/Emenda antes do pagamento": ["SIAFI; Tesouro Gerencial"], "Geracao Guia do ISS": ["Portal ISS; SIAFI"], "Criacao da Lista de Fatura do ISS": ["Planilha; SIAFI"], "Pagamento da liquidacao no SIAFI": ["SIAFI"], "Lançamento REINF (Pós-Pagamento)": ["Planilha REINF; Drive"], "Fechamento LCs": ["SIAFI"], "Despacho OB p/ COERG": ["SEI; SIAFI"], "Lançamento Dedução Federal REINF": ["Planilha REINF"], "Confirmação Beneficiários / LCs": ["SIAFI; Planilha"], "Informe do PG ao demandante (e-mail)": ["E-mail"], "Conferência e Pagamento PCDPs (SIAFI)": ["SIAFI"], "Orientacao tecnica por e-mail": ["E-mail"], "Orientacao tecnica por WhatsApp": ["WhatsApp"], "Solicitacao de correcao de NP/RP ao campus": ["E-mail; WhatsApp; SEI"], "Solicitacao de alteracao ou inclusao de deducao federal/INSS": ["E-mail; SEI"], "Atendimento presencial ou por videoconferencia": ["Teams; Presencial"], "Atendimento sobre pagamento pendente": ["E-mail; WhatsApp"], "Esclarecimento sobre retencoes tributarias": ["E-mail; WhatsApp"], "Informe de previsao de pagamento": ["E-mail"], "Solicitacao de nota fiscal ou documentacao faltante": ["E-mail"], "Verificacao de dados bancarios do fornecedor": ["E-mail; SIAFI"], "Elaboracao de oficio ou despacho de resposta": ["SEI"], "Levantamento de informacoes solicitadas": ["SIAFI; SEI; Tesouro Gerencial"], "Envio de documentacao ao orgao externo": ["SEI; E-mail"], "Preenchimento da planilha pre-lancamento SIAFI": ["SIAFI; Planilha"], "Solicitacao de recurso financeiro da folha no SIAFI": ["SIAFI"], "Consulta da liberacao do recurso financeiro": ["SIAFI"], "Anexo dos comprovantes de pagamento da folha": ["SEI"], "Despacho das OBs para COERG": ["SEI; SIAFI"], "Consulta no Serpro": ["Serpro"], "Liquidacao e pagamento do PASEP": ["SIAFI"], "Elaboracao de despacho": ["SEI"], "Envio de e-mail institucional": ["E-mail"], "Emissao de relatorio gerencial": ["Tesouro Gerencial; SIAFI"], "Preenchimento de planilha de controle": ["Planilha"], "Registro no Trello": ["Trello"], "Preenchimento de planilha de controle TED/Emenda": ["Planilha; SIAFI"], "Consulta de saldo disponivel no Tesouro Gerencial": ["Tesouro Gerencial"], "Verificacao de liberacao de recurso no SIAFI": ["SIAFI"], "Preenchimento do sistema SIMEC": ["SIMEC"], "Preenchimento do sistema FNDE": ["FNDE"], "Emissao de DARF": ["SIAFI; Receita Federal"], "Lancamento no SEFIP/GFIP": ["SEFIP"], "Preenchimento e fechamento do EFD-Reinf": ["eSocial; EFD-Reinf"], "Transmissao da DCTFWeb": ["DCTFWeb"], "Recolhimento de GPS": ["SIAFI; Receita Federal"], "Envio de IRRF ao fornecedor ou colaborador externo": ["E-mail"], "Geracao e pagamento de guia de ISS": ["Portal ISS; SIAFI"], "Conferencia do despacho decisorio": ["SEI"], "Preenchimento da planilha de acompanhamento": ["Planilha"], "Despacho autorizando pagamento para o campus": ["SEI"], "Conferência dos comprovantes de pagamento recebidos do campus": ["SEI; Planilha"], "Verificacao do SICAF valido": ["SICAF"], "Conferencia dos comprovantes de liquido e retencoes": ["SIAFI; Planilha"], "Encaminhamento para COERG apos conferencia": ["SEI"], "Emissao do comprovante de IRRF": ["SIAFI; Planilha"], "Envio por e-mail ao fornecedor ou colaborador": ["E-mail"], "Emissao de Nota de Lancamento (NL)": ["SIAFI"], "Emissao de Programacao Financeira (PF)": ["SIAFI"], "Emissao de Nota de Sistema (NS)": ["SIAFI"], "Consulta e acompanhamento de saldo financeiro": ["SIAFI; Tesouro Gerencial"], "Envio de Comunica no SIAFI": ["SIAFI"], "Emissao de relatorio gerencial no Tesouro Gerencial": ["Tesouro Gerencial"], "Participacao em reuniao": ["Teams; Presencial"], "Participacao em treinamento ou curso": ["Teams; Plataforma EAD"], "Participacao em comissao ou grupo de trabalho": ["Presencial; SEI"], "Elaboracao de ata ou lista de presenca": ["SEI; Planilha"], "Consultas das OBs canceladas no SIAFI": ["SIAFI"], "Preenchimento de planilha de controle das OBs": ["Planilha"], "Emissao de lista de credores": ["SIAFI"], "E-mail de consulta ao campus ou fornecedor": ["E-mail"], "Regularizacao da OB no SIAFI": ["SIAFI"], "Despacho de regularizacao no SEI": ["SEI"], "Consulta de saldo de empenho": ["SIAFI HOD"], "Consulta de disponibilidade financeira": ["SIAFI HOD"], "Comunicação de pendência de lançamento REINF ao responsável (WhatsApp)": ["WhatsApp; Planilha REINF"], "Verificação de saldo com coordenadora de orçamento (WhatsApp)": ["WhatsApp"], "Despacho devolvendo processo para indicação de empenho com saldo": ["SEI"], "Verificação de liberação de recurso no SIAFI HOD": ["SIAFI HOD"], "Verificação de PCDPs pendentes no SIAFI": ["SIAFI"], "Conferência da PCDP": ["SIAFI; SEI"], "Liquidação da PCDP no SIAFI": ["SIAFI"], "Pagamento da PCDP no SIAFI": ["SIAFI"], "Verificação de PCDPs — sem pendência": ["SIAFI HOD"], "Verificação dos processos recebidos no SEI": ["SEI"], "Classificação do processo (pagamento ou liquidação)": ["SEI"], "Distribuição para a equipe responsável": ["SEI; WhatsApp"], "Conferência e assinatura do despacho de liquidação": ["SEI"], "Verificação de documentação pendente": ["SEI"], "Comunicação ao campus sobre pendência": ["WhatsApp; E-mail; SEI"], "Devolução do processo com orientações": ["SEI"], "Conferência dos comprovantes de pagamento recebidos": ["SEI; Planilha"], "Verificação do lançamento da NP na planilha REINF": ["Planilha REINF"]};
 
 function getSistemasParaAtividades(ativsSelecionadas){
   var todosSistemas = {};
@@ -2236,6 +2085,13 @@ function salvarLote(){
 }
 
 
+
+function mudarPag(pag){
+  localStorage.setItem('hist_pag', pag);
+  renderHistorico();
+  document.getElementById('historico').scrollTop = 0;
+}
+
 function irHistorico(){
   var btn = document.querySelector('.tab:nth-child(2)');
   if(btn) showTab('historico', btn);
@@ -2427,6 +2283,17 @@ function backupAuto(){
   }
 }
 setInterval(backupAuto, 30 * 60 * 1000);
+
+// ── Aviso ao sair com formulário preenchido ───────────────────
+window.addEventListener('beforeunload', function(e){
+  var tipo = document.getElementById('tipo');
+  var sei = document.getElementById('sei');
+  var temDados = (tipo && tipo.value) || (sei && sei.value && sei.value.trim());
+  if(temDados){
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
 
 init();
 </script>
