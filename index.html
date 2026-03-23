@@ -441,6 +441,28 @@ textarea{resize:vertical;min-height:64px}
           <input type="hidden" id="campus">
         </div>
       <div class="field"><label>Tipo de demanda principal</label><select id="tipo" onchange="onTipoChangeComIA()"><option value="">- Selecione o tipo -</option></select></div>
+      <div class="field" id="pit-override-field" style="display:none">
+        <label>Tipo PIT/SUAP <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#888">(opcional — troque se necessário para o relatório)</span></label>
+        <select id="pit-override" style="font-size:13px;color:#555">
+<option value="">— usar padrão do tipo —</option>
+<option value="Atendimento aos campi e setores quanto a orientacoes tecnicas">Atendimento aos campi e setores quanto a orientacoes tecnicas</option>
+<option value="Atendimento aos fornecedores quanto aos pagamentos">Atendimento aos fornecedores quanto aos pagamentos</option>
+<option value="Atendimento as determinacoes e demandas de orgaos externos">Atendimento as determinacoes e demandas de orgaos externos</option>
+<option value="Atividades referentes a Liquidacao de Despesas">Atividades referentes a Liquidacao de Despesas</option>
+<option value="Atividades referentes a liquidacao e pagamento da folha de pessoal">Atividades referentes a liquidacao e pagamento da folha de pessoal</option>
+<option value="Atividades referentes ao Pagamento de Despesas">Atividades referentes ao Pagamento de Despesas</option>
+<option value="Auxilio a Diretoria de Contabilidade e Financas e Pro-Reitoria de Administracao">Auxilio a Diretoria de Contabilidade e Financas e Pro-Reitoria de Administracao</option>
+<option value="Controle e acompanhamento recursos especificos (TED/Emenda)">Controle e acompanhamento recursos especificos (TED/Emenda)</option>
+<option value="Cumprimento de obrigacoes tributarias (SEFIP, FGTS, DARF, ISS, EFD-Reinf, DCTFweb)">Cumprimento de obrigacoes tributarias (SEFIP, FGTS, DARF, ISS, EFD-Reinf, DCTFweb)</option>
+<option value="Elaboracao e revisao de fluxos de processos e manuais">Elaboracao e revisao de fluxos de processos e manuais</option>
+<option value="Envio de IRRF aos fornecedores e colaboradores externos">Envio de IRRF aos fornecedores e colaboradores externos</option>
+<option value="Envio de demandas (liquidacao e pagamento) para os campi">Envio de demandas (liquidacao e pagamento) para os campi</option>
+<option value="Gestao de Recursos Financeiros">Gestao de Recursos Financeiros</option>
+<option value="Participacao em atividades">Participacao em atividades</option>
+<option value="Regularizacao de pagamento (OBs canceladas)">Regularizacao de pagamento (OBs canceladas)</option>
+        </select>
+        <div id="pit-sugestao" style="font-size:11px;color:#0B6E4F;margin-top:4px;font-weight:600"></div>
+      </div>
 
       <div id="ativs-field" style="display:none" class="field">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
@@ -635,6 +657,27 @@ textarea{resize:vertical;min-height:64px}
     <div class="field"><label>Processo SEI</label><input type="text" id="e-sei"></div>
     <div class="field"><label>Data</label><input type="date" id="e-data"></div>
     <div class="field"><label>Tipo de demanda</label><input type="text" id="e-tipo"></div>
+    <div class="field">
+      <label>Tipo PIT/SUAP <span style="font-weight:400;font-size:11px;color:#888">(opcional)</span></label>
+      <select id="e-pit-override" style="font-size:13px">
+<option value="">— usar padrão do tipo —</option>
+<option value="Atendimento aos campi e setores quanto a orientacoes tecnicas">Atendimento aos campi e setores quanto a orientacoes tecnicas</option>
+<option value="Atendimento aos fornecedores quanto aos pagamentos">Atendimento aos fornecedores quanto aos pagamentos</option>
+<option value="Atendimento as determinacoes e demandas de orgaos externos">Atendimento as determinacoes e demandas de orgaos externos</option>
+<option value="Atividades referentes a Liquidacao de Despesas">Atividades referentes a Liquidacao de Despesas</option>
+<option value="Atividades referentes a liquidacao e pagamento da folha de pessoal">Atividades referentes a liquidacao e pagamento da folha de pessoal</option>
+<option value="Atividades referentes ao Pagamento de Despesas">Atividades referentes ao Pagamento de Despesas</option>
+<option value="Auxilio a Diretoria de Contabilidade e Financas e Pro-Reitoria de Administracao">Auxilio a Diretoria de Contabilidade e Financas e Pro-Reitoria de Administracao</option>
+<option value="Controle e acompanhamento recursos especificos (TED/Emenda)">Controle e acompanhamento recursos especificos (TED/Emenda)</option>
+<option value="Cumprimento de obrigacoes tributarias (SEFIP, FGTS, DARF, ISS, EFD-Reinf, DCTFweb)">Cumprimento de obrigacoes tributarias (SEFIP, FGTS, DARF, ISS, EFD-Reinf, DCTFweb)</option>
+<option value="Elaboracao e revisao de fluxos de processos e manuais">Elaboracao e revisao de fluxos de processos e manuais</option>
+<option value="Envio de IRRF aos fornecedores e colaboradores externos">Envio de IRRF aos fornecedores e colaboradores externos</option>
+<option value="Envio de demandas (liquidacao e pagamento) para os campi">Envio de demandas (liquidacao e pagamento) para os campi</option>
+<option value="Gestao de Recursos Financeiros">Gestao de Recursos Financeiros</option>
+<option value="Participacao em atividades">Participacao em atividades</option>
+<option value="Regularizacao de pagamento (OBs canceladas)">Regularizacao de pagamento (OBs canceladas)</option>
+      </select>
+    </div>
     <div class="field"><label>Atividades realizadas</label><textarea id="e-ativs" style="min-height:90px"></textarea></div>
     <div class="field"><label>Campus / Setor</label><input type="text" id="e-campus"></div>
     <div class="field"><label>Sistemas utilizados</label><input type="text" id="e-sistemas"></div>
@@ -712,37 +755,13 @@ var defaultPit = [
   {titulo:"Regularizacao de pagamento (OBs canceladas)",tipo:"fixa",horas:2,peso:1}
 ];
 
-var CONFIG_VERSION = '2026-03-20a';
+var CONFIG_VERSION = '2026-03-19e';
 var storedVersion = localStorage.getItem('cofin_config_version');
 var storedConfig = JSON.parse(localStorage.getItem(CONFIG_KEY)||'null');
-
-// Valida se uma config está íntegra (detecta encoding corrompido e config do pitMap)
-function configIntegra(arr){
-  if(!arr || !arr.length) return false;
-  var joined = arr.map(function(c){return c.tipo||'';}).join('');
-  // Detecta UTF-8 mal decodificado: "Ã§", "Ã£", etc.
-  if(joined.indexOf('\u00c3')>=0 || joined.indexOf('Ã')>=0 || joined.indexOf('\uFFFD')>=0) return false;
-  // Verifica se tem pelo menos um tipo real do sistema (não nomes do pitMap)
-  var temTipoReal = arr.some(function(c){
-    return c.tipo && (
-      c.tipo.indexOf('(Reitoria)')>=0 ||
-      c.tipo.indexOf('(Campus)')>=0 ||
-      c.tipo.indexOf('PCDP')>=0
-    );
-  });
-  return temTipoReal;
-}
-
-// Se storedConfig está corrompida ou inválida, descarta e usa defaultConfig
-var config;
-if(storedConfig && configIntegra(storedConfig)){
-  config = storedConfig;
-} else {
-  config = defaultConfig;
-  localStorage.removeItem(CONFIG_KEY);
-  localStorage.removeItem('cofin_config_version');
-}
-if(!storedVersion || !configIntegra(storedConfig)){
+// Never reset user's custom config when version changes
+// Just use what's stored, or defaultConfig if nothing stored
+var config = storedConfig || defaultConfig;
+if(!storedVersion){
   localStorage.setItem('cofin_config_version', CONFIG_VERSION);
 }
 var registros = JSON.parse(localStorage.getItem(REG_KEY)||'[]');
@@ -821,19 +840,14 @@ function carregarConfigSheets(){
     if(d.status==='ok' && d.config){
       try{
         var remoto = JSON.parse(d.config);
-        if(remoto && remoto.length && configIntegra(remoto)){
+        if(remoto && remoto.length){
           config = remoto;
           localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
           localStorage.setItem('cofin_config_version', CONFIG_VERSION);
           popularSelect();
           renderConfig();
           setSyncStatus('ok','Config sincronizada');
-          var lo=document.getElementById('loading-overlay');if(lo)lo.style.display='none';
-        } else if(remoto && remoto.length && !configIntegra(remoto)){
-          // Config corrompida no Sheets — mantém local correta e reempurra
-          setSyncStatus('ok','Config local (Sheets corrompido — restaurando)');
-          sincronizarConfig();
-          var lo=document.getElementById('loading-overlay');if(lo)lo.style.display='none';
+      var lo=document.getElementById('loading-overlay');if(lo)lo.style.display='none';
         }
       }catch(e){
         setSyncStatus('ok','Sheets conectado');
@@ -994,6 +1008,7 @@ function salvarRegistro(){
     sei:document.getElementById('sei').value.trim(),
     data:document.getElementById('data').value,
     tipo:tipo,
+    pitOverride:document.getElementById('pit-override')?document.getElementById('pit-override').value:'',
 
     atividades:ativs,
     sistemas:getSistemasSelected()||'',
@@ -1017,6 +1032,9 @@ function limparForm(){
   document.getElementById('tipo').value='';
   document.getElementById('complemento').value='';
   limparCampusTags();
+  var po=document.getElementById('pit-override');if(po)po.value='';
+  var pf=document.getElementById('pit-override-field');if(pf)pf.style.display='none';
+  var ps=document.getElementById('pit-sugestao');if(ps)ps.textContent='';
   document.getElementById('detalhes').value='';
   document.getElementById('ativs-field').style.display='none';
   document.getElementById('comp-field').style.display='none';
@@ -1117,7 +1135,10 @@ function renderHistorico(){
     html+='<button class="move-btn" onclick="moverItem(&quot;hist&quot;,-1,'+i+',-1)" title="Mover para cima">&#9650;</button>';
     html+='<button class="move-btn" onclick="moverItem(&quot;hist&quot;,-1,'+i+',1)" title="Mover para baixo">&#9660;</button>';
     html+='</div>';
-    html+='<div class="tp">'+r.tipo+syncBadge+'</div>';
+    var pitBadge = (r.pitOverride && r.pitOverride.trim())
+      ? '<span style="font-size:9px;background:#ede9fe;color:#5b21b6;padding:1px 6px;border-radius:3px;margin-left:6px;font-weight:600" title="Tipo PIT customizado">PIT: '+r.pitOverride.split('(')[0].trim()+'</span>'
+      : '';
+    html+='<div class="tp">'+r.tipo+syncBadge+pitBadge+'</div>';
     html+='<div class="pc">'+(r.sei||'Sem processo SEI')+'</div>';
     html+='<div class="av">'+(r.atividades||'')+'</div>';
     html+='<div class="mt">';
@@ -1170,6 +1191,7 @@ function abrirEdicao(i){
   document.getElementById('e-sei').value=r.sei||'';
   document.getElementById('e-data').value=r.data||'';
   document.getElementById('e-tipo').value=r.tipo||'';
+  var epo=document.getElementById('e-pit-override');if(epo)epo.value=r.pitOverride||'';
   document.getElementById('e-ativs').value=r.atividades||'';
   document.getElementById('e-campus').value=r.campus||''; preencherCampusTags(r.campus||'');
   document.getElementById('e-sistemas').value=r.sistemas||'';
@@ -1184,6 +1206,8 @@ function salvarEdicao(){
     sei:document.getElementById('e-sei').value,
     data:document.getElementById('e-data').value,
     tipo:document.getElementById('e-tipo').value,
+    pitOverride:document.getElementById('e-pit-override')?document.getElementById('e-pit-override').value:'',
+    pitOverride:document.getElementById('e-pit-override')?document.getElementById('e-pit-override').value:'',
     atividades:document.getElementById('e-ativs').value,
     campus:document.getElementById('e-campus').value,
     sistemas:document.getElementById('e-sistemas').value,
@@ -1522,6 +1546,19 @@ function onTipoChangeComIA(){
   onTipoChange();
   if(registros.length >= 2) iaAtualizarSugestoes();
   mostrarDetalheSugestoes();
+  // Show PIT override field and suggest default
+  var tipoVal = document.getElementById('tipo').value;
+  var pitField = document.getElementById('pit-override-field');
+  var pitSug = document.getElementById('pit-sugestao');
+  var pitSel = document.getElementById('pit-override');
+  if(pitField && tipoVal){
+    pitField.style.display = 'block';
+    var sugerido = (typeof pitMap !== 'undefined' && pitMap[tipoVal]) ? pitMap[tipoVal] : '';
+    if(pitSug) pitSug.textContent = sugerido ? 'Sugestão automática: ' + sugerido : '';
+    if(pitSel) pitSel.value = ''; // reset to "usar padrão"
+  } else if(pitField){
+    pitField.style.display = 'none';
+  }
   var tiposSemPadrao = ["Autoriza\u00e7\u00e3o de Pagamento (Campus)", "Confer\u00eancia do Retorno (Campus)", "Triagem e Distribui\u00e7\u00e3o de Processos", "Atendimento aos Campi e Setores", "Atendimento aos Fornecedores", "Atendimento a \u00d3rg\u00e3os Externos"];
   var tipoPrincipal = document.getElementById('tipo').value;
   if(campusPadrao && tiposSemPadrao.indexOf(tipoPrincipal) < 0){
@@ -1646,7 +1683,9 @@ function gerarRelatorio(){
   // Group by PIT tipo (SUAP)
   var porTipo={};
   regs.forEach(function(r){
-    var pitTipo = (typeof pitMap !== 'undefined' && pitMap[r.tipo]) ? pitMap[r.tipo] : r.tipo;
+    var pitTipo = (r.pitOverride && r.pitOverride.trim())
+      ? r.pitOverride
+      : ((typeof pitMap !== 'undefined' && pitMap[r.tipo]) ? pitMap[r.tipo] : r.tipo);
     if(!porTipo[pitTipo]) porTipo[pitTipo]=[];
     porTipo[pitTipo].push(r);
   });
@@ -1962,10 +2001,7 @@ function aplicarDetalheSug(sug){
 // ── Triagem rápida do dia ─────────────────────────────────────
 function registrarTriagemDia(){
   var tipo = 'Triagem e Distribuição de Processos';
-  function normTipo(s){ return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
-  var tipoNorm = normTipo(tipo);
-  var cf = config.find(function(c){ return normTipo(c.tipo)===tipoNorm; });
-  if(!cf){ cf = defaultConfig.find(function(c){ return normTipo(c.tipo)===tipoNorm; }); }
+  var cf = config.find(function(c){return c.tipo===tipo;});
   if(!cf){showToast('Tipo de triagem não encontrado');return;}
   var ativs = cf.atividades.filter(function(a){return a.padrao;}).map(function(a){return a.texto;}).join('; ');
   var qtdEl = document.getElementById('triagem-qtd');
@@ -1976,10 +2012,10 @@ function registrarTriagemDia(){
     id: Date.now(),
     sei: '',
     data: today(),
-    tipo: cf.tipo,
+    tipo: tipo,
     atividades: ativs,
     campus: campusPadrao || 'RT',
-    sistemas: cf.sistemas || 'SEI',
+    sistemas: 'SEI',
     detalhes: hora + ' — ' + qtd + ' processo(s) analisado(s)',
     synced: false
   };
